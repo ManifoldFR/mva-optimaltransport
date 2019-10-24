@@ -1,0 +1,86 @@
+\documentclass{article}
+
+\usepackage{geometry}
+\usepackage[colorlinks]{hyperref}
+\usepackage{mathtools,amsthm,amsfonts}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\usepackage[
+backend=biber
+]{biblatex}
+
+\addbibresource{../bibliography/references.bib}
+
+%%% DEFINE MACROS %%%
+
+%% Math %%
+
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\TT}{\mathbb{T}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\BB}{\mathbb{B}}
+\newcommand{\WW}{\mathbb{W}}
+
+\newcommand{\suchthat}{\mathrm{s.t.}}
+
+\DeclareMathOperator{\divg}{div}
+
+\author{Wilson \textsc{Jallet}}
+\title{\textit{Computational Optimal Transport} (MVA)\\ \textsf{Project report:}\\
+Application of Optimal Transport to Entropic formulations of Mean-Field Games}
+
+\begin{document}
+    \maketitle
+    
+    \section{General setting: variational mean-field games}
+    
+    A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making (or, when dynamics are involved, \textit{optimal control}) problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. Each agent evolves according to some dynamics and makes choices, but the response to his choices are affected by the states and choices of the numerous other agents through a \textit{mean-field} effect.
+    
+    Several ways of modeling agent cross-interaction exist. More recently, \cite{benamou:hal-01295299} have focused on games where agent interactions take a variational form, allowing to penalize phenomenons such as congestion inside areas of the agent state space.
+    
+    
+    The (Nash) equilibrium agent-control dynamics can be summarized by the system of coupled nonlinear partial differential equations:
+    \begin{subequations}\label{eq:VariationalQuadraticMFG}
+    \begin{align}\label{eq:VarQuadMFGHJB}
+    -\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t] \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
+    \partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho\nabla u) &= 0 \\
+    \rho_0 \text{ given} \\
+    u(T, \cdot) = g[\rho_T]
+    \end{align}	
+    \end{subequations}
+    where and $t\mapsto \rho_t$ is a trajectory in the space of measures (it is an element of the \textbf{Wiener space} $\mathcal{C}([0,T]; \WW_2(\Omega))$), and $\Omega$ is the standard Euclidean space $\RR^d$. The functionals $f$ and $g$ are supposed to be directional derivatives of some potentials $F$ and $G$.
+    
+    The equations \eqref{eq:VarQuadMFGHJB}--\eqref{eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (Kolmogorov) equations.
+    
+    It has been shown that the previous system of PDEs can be reformulated to a variational problem:
+    \begin{subequations}
+    \begin{align}
+    	&\inf_{\rho,v} J(\rho, v) =
+    	\frac{1}{2}\int_0^T\int_\Omega |v_t|^2 \,d\rho_t(x)\,dt + \int_0^T F(\rho_t)\,dt + G(\rho_T)
+    	\\
+    	\suchthat\ &\partial_t \rho - \frac12\Delta \rho + \divg(\rho v) = 0 \\
+    	&\rho_0 \in \WW_2(\Omega)	
+    \end{align}
+	\end{subequations}
+	where the unknowns are constrained within appropriate functional spaces.
+
+
+
+	\section{Entropic formulation}
+    
+    
+    
+    
+    \section{Numerical algorithm}
+    
+    
+    
+    
+    \printbibliography{}
+    
+    
+    
+    
+    
+\end{document}
