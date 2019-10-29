@@ -242,7 +242,7 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
 	\begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
 	In practice, the convex conjugates of the cost functions are difficult to compute. For some of the examples in the paper, we have closed-form conjugates.
 	\begin{itemize}
-		\item The conjugate of the convex indicatrix $\imath_{\nu}$ of any given measure $\nu$ is given by $\imath_{\nu}^*(u) = \langle \nu, u\rangle$.
+		\item The conjugate of the convex indicatrix $\imath_{\nu}$ of any given measure $\nu$ is given by $\imath_{\nu}^*(u) = \langle u, \nu\rangle$.
 		\item The hard congestion constraint $F(\rho) = \begin{cases}
 		0&\text{ if }\rho\leq \bar{\rho} \\
 		+\infty&\text{ otherwise}
@@ -308,7 +308,7 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     
     For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points in $\RR^d$ of dimensionality $M = N_1\times\cdots\times N_d$. Integration is exchanged with summation.
     
-    
+    The iterations are solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}.
     
     
     
