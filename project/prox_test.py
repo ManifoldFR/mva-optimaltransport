@@ -5,7 +5,7 @@ import numpy as np
 import cvxpy as cvx
 import matplotlib.pyplot as plt
 
-print("CVXPY version:", cvx.__version__)
+print("CVXPY version:", cvx.__version__, end='\n')
 
 
 nx = 21
@@ -35,7 +35,7 @@ prob = cvx.Problem(cvx.Minimize(obj),
                    constraints=constraints)
 
 z_solutions = []
-ratio_values = [0.9, 1.8, 2.8]
+ratio_values = [0.9, 2.2, 2.6]
 rho_values = []
 
 # Iterate over values of rho_max
