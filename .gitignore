@@ -2,6 +2,7 @@
 bibliography/*.pdf
 
 .vscode/
+numericaltours/nt_toolbox/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
