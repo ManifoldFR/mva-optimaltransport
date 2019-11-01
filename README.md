@@ -1,4 +1,7 @@
-# mva-optimaltransport
+# Computational Optimal Transport
+
+![](three_way_transport.png)
+
 Work for the MVA course "Computational Optimal Transport' https://optimaltransport.github.io/
 
 ## Numerical tours
