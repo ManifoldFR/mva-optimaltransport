@@ -2,23 +2,22 @@
 
 \usepackage[a4paper]{geometry}
 \usepackage{hyperref}
+\usepackage{subfiles}
 \usepackage{mathtools}
 \usepackage{amssymb}
 \usepackage{dsfont,mathrsfs}
 \usepackage[
-	linesnumbered,lined,boxed
+linesnumbered,lined,boxed
 ]{algorithm2e}
 
 \usepackage[dvipsnames]{xcolor}
-\usepackage[framemethod=TikZ]{mdframed}
 \usepackage{amsthm,thmtools}
-
-\usepackage{csquotes}
 
 \usepackage{graphicx}
 
+\usepackage{csquotes}
 \usepackage[
-	backend=biber
+backend=biber
 ]{biblatex}
 
 \addbibresource{../bibliography/references.bib}
@@ -26,8 +25,8 @@
 %% Hyperref %%
 
 \hypersetup{
-	colorlinks,
-	citecolor=Green
+colorlinks,
+citecolor=Green
 }
 
 %%% DEFINE MACROS %%%
@@ -66,283 +65,180 @@
 
 \declaretheorem[thmbox=S]{remark}
 \declaretheorem[
-	name=Algorithm,
-	sibling=algocf
+thmbox=S,
+name=Algorithm,
+sibling=algocf
 ]{thmalgo}
 
 
 \author{Wilson \textsc{Jallet}}
 \title{
-	{\large\textit{Computational Optimal Transport} -- \textsf{Project report:}}\\
+{\large\textit{Computational Optimal Transport} -- \textsf{Project report:}}\\
 Optimal Transport and Entropic methods for solving variational Mean-Field Games}
 
 \begin{document}
-    \maketitle
-    
-    
-    \section{General setting: variational mean-field games}
-    
-    A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. In the continuous-time setting explored in \cite{LASRY2006679}, each agent evolves according to some dynamics and makes choices, but the response to his choices are affected by the states and choices of the numerous other agents -- leading to a so-called \textit{differential game} -- through a \textit{mean-field} effect.
-    
-    Several ways of modeling agent cross-interaction exist. More recently, \cite{benamou:hal-01295299} have focused on games where agent interactions take a variational form, allowing to penalize phenomenons such as congestion inside areas of the agent state space.
-    
-    
-    The (Nash) equilibrium agent-control dynamics can be summarized by the system of coupled nonlinear partial differential equations:
-    \begin{subequations}\label{eq:VariationalQuadraticMFG}
-    \begin{align}\label{eq:VarQuadMFGHJB}
-    -\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t] \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
-    \partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
-    \rho_0 \text{ given} \\
-    u(T, \cdot) = g[\rho_T]
-    \end{align}	
-    \end{subequations}
-    where and $t\mapsto \rho_t$ is a trajectory in the space of measures, and $\Omega$ is the standard Euclidean space $\RR^d$. The applications $f$ and $g$ are supposed to be derivatives of some real-valued functionals $F$ and $G$. For instance, if $G(\mu) = \int_\Omega \Psi\,d\mu(x)$ then its derivative is $g[\mu](x) = \Psi(x)$.
-    
-    The equations \eqref{eq:VarQuadMFGHJB}--\eqref{eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (forward Kolmogorov) equations.
-    
-    \subsection{The variational problem}
-    
-    The first idea of \cite{benamou:hal-01295299} is to cast the MFG partial differential equations to a variational problem over an appropriate function space. Denote $\WW_2(\Omega) = (\calP_2(\Omega), \calW_2)$ the set of probability measures with finite second moment, equipped with the Wasserstein metric
-    \begin{equation}\label{eq:Wasserstein2Metric}
-    	\calW_2(\mu,\nu)^2 = \inf_{\gamma\in\Pi(\mu,\nu)}
-    	\int {|x-y|}^2 d\gamma
-    \end{equation}
-    where $\Pi(\mu,\nu) =\{ \gamma \in \calP_2(\Omega\times\Omega) : P^1_{\#}\gamma = \mu,\; P^2_{\#}\gamma = \nu \}$ is the set of transport plants from $\mu$ to $\nu$.
-    Then, $\mathcal{C}([0, T], \WW_2(\Omega))$ is the Wiener space of continuous $\WW_2$-valued trajectories.
-    \textcite{benamou:hal-01295299} show that the MFG be reformulated to the following variational problem:
-    \begin{subequations}\label{eq:EulerianProblem}
-    \begin{align}
-    	&\inf_{\rho,v} J(\rho, v) =
-    	\frac{1}{2}\int_0^T\int_\Omega |v_t|^2 \,d\rho_t(x)\,dt + \int_0^T F(\rho_t)\,dt + G(\rho_T)
-    	\\
-    	\suchthat\ &\partial_t \rho_t - \frac12\Delta \rho_t + \divg(\rho_t v) = 0 \\
-    	&\rho_0 \in \WW_2(\Omega)	
-    \end{align}
-	\end{subequations}
-	where $\rho = (\rho_t)_{t\in[0,T]}\in \calC([0,T], \WW_2(\Omega))$ is a trajectory in $\WW_2$ and $v$ is a sufficiently regular function on $[0,T] \times \Omega$ (most likely a Sobolev space).
-	
-	\textcite{benamou2018entropy} also introduce the following partial problem:
-	\begin{equation}\label{eq:FPhPartial}
-		\mathrm{FP}_h(\mu,\nu) =
-		\inf_{\rho, v} \int_0^h\int_\Omega |v_t|^2 d\rho_t(x)\,dt
-		\quad \suchthat\;
-		\partial_t\rho_t -\frac12\Delta\rho_t + \divg(\rho_tv),\;
-		\rho_0 = \mu,\; \rho_h = \nu
-	\end{equation}
-	It can be used to connect approximations of the solution measure to our MFG problem at discrete times $t_k = kh$, $k=0,\ldots,N$.
-	
-	This point of view \cite{benamou:hal-01295299} is called \textit{Eulerian}: we minimize over both the velocity $v$ and the time-trajectory of the agents' density $\rho$. It is not very practical because of the structure of the constraint (a Fokker-Planck equation). Instead, we could minimize over measures in the space of individual agents' trajectories, which is the base of the \textit{Lagrangian} formulation \cite{benamou2015lagrangian,benamou:hal-01295299} proposed by \citeauthor{benamou:hal-01295299} and that we explore in the sequel.
+\maketitle
 
 
-	\section{Lagrangian dual formulation}
-    
-    \subsection{Wiener space and measure}
-    
-    This new point of view involves a change in function spaces. We denote $\calX = \calC([0,T], \Omega)$ the Wiener space of (agents') trajectories $[0,T] \rightarrow\Omega$. Following \cites{benamou:hal-01295299,benamou2015lagrangian}, we equip it with the Wiener measure (the law of a Wiener process with any starting point $x$)
-    \[
-    	R = \int_\Omega \delta_{x + W}\,dx
-    \]
-   	where $W$ is a standard Wiener process in $\RR^d$. It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}.
-   	
-   	Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]} \in \calC([0,T], \calP(\Omega))$, with
-    \[
-    	Q_t = e_{t\#}Q \in \calP(\Omega)
-    \]
-    the push-forward of $Q$ by the evaluation map $e_t\colon \xi\in\calX\longmapsto \xi(t)$. This naturally defines an injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
-    
-    \paragraph{Marginals of the Wiener measure $\boldsymbol{R}$.} We introduce the heat kernel
-    $G_t(u) =
-    \frac{1}{(2\pi t)^{d/2}} \exp\left(-\frac{|u|^2}{2t}\right)$.
-    In particular, $R_t$ is the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$, and
-    \begin{equation}\label{eq:2MarginWienerMeasure}
-    	R_{s,t}(dx,dy) = G_{t-s}(x-y)\,dx\,dy.
-    \end{equation}
-    
-    \textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into a so-called Lagrangian optimization problem over the set of Borel probability measures (more specifically that associated with the Sobolev subspace $H^1$ of $\calX$). This new problem is solved in \cite{benamou:hal-01295299} using a finite element method, which is computationally expensive.
-    
-    
-    
-    
-    \subsection{The entropic Lagrangian approach}
-    
-    Instead, \textcite{benamou2018entropy} propose using an entropy minimization approach to allow for a more computationally efficient method adapted from the Sinkhorn algorithm \cite{cuturi2013sinkhorn} developed by \citeauthor{cuturi2013sinkhorn}.
-    
-    This method, just like the Sinkhorn for OT between histograms (discrete measures), introduces some sort of entropic regularization \cite{benamou2018entropy}, but this time on the measure over the trajectory space $\calX$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{benamou:hal-01295299,benamou2015lagrangian}.
-    
-    For all measures $Q$ on $\calX$ admitting a density with respect to $R$, we define the relative entropy
-    \begin{equation}\label{eq:VariationalEntropy}
-   	H(Q | R) = \int_\calX \ln\left(\frac{dQ}{dR}\right)\,dQ(\xi)
-    \end{equation}
-    The entropic Lagrangian variational problem is
-    \begin{equation}\label{eq:EntropyLagrangianPb}
-    \inf_{Q\in\calP(\calX)}
-    H(Q|R) + \int_0^T F(Q_t)\,dt + G(Q_T),\
-    \suchthat\ Q_0 = \rho_0
-    \end{equation}
-    
-    \paragraph{Partial transport problem} \citeauthor{benamou2018entropy} provide another partial transport problem:
-    \begin{equation}\label{eq:ShPartial}
-    	S_h(\mu, \nu) =
-    	\inf\left\{
-    		H(Q|R) : Q\in\calP(\calC([0,h], \Omega)),
-    		\; Q_0 = \mu,\; Q_h = \nu
-    	\right\}
-    \end{equation}
-    This problem can be seen as a continuous OT problem between the two measures $\mu$ and $\nu$. \textcite{benamou2018entropy} show that it is linked to the partial Eulerian problem \eqref{eq:FPhPartial} as
-    \[
-    	S_h(\mu,\nu) = \mathrm{FP}_h(\mu,\nu) + \Ent \mu.
-    \]
-    The dimensionality of problem \eqref{eq:ShPartial} can be greatly simplified; according to \cite{benamou2018entropy} we can rewrite it as a static OT problem
-    \begin{equation}
-    	S_h(\mu, \nu) = \inf\left\{ H(\gamma | R_{0,h}) : \gamma \in \Pi(\mu, \nu) \right\}.
-    \end{equation}
-    
-    
-    
-    \section{Numerical algorithm}
-    
-    
-    Let $N$ be the number of discrete steps for the time discretization of the problem, and $h=T/N$ the time step.
-    
-    We consider the following multi-marginal OT problem
-    \begin{equation}
-    	\calS(\mu_0,\ldots,\mu_N) =
-    	\inf_{\gamma \in \Pi(\mu_0, \ldots, \mu_N)}
-    	H(\gamma|R^N)
-    \end{equation}
-    where $t_k = kh$, $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$.
-    Then, define
-    \[
-    	\mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
-    \]
-    
-    Thus, the discretized entropy minimization problem can be written as
-    \[
-    	\inf\left\{
-    	\calS(\mu_0, \ldots, \mu_N) +
-    	\mathcal{U}(\mu_0, \ldots, \mu_N)
-    	: \mu_k \in \calP_2(\Omega),\; \mu_0 = \rho_0
-    	\right\}.
-    \]
-    Expanding the inf-within-inf leads to the following convex optimization problem:
-    \begin{equation}
-    \begin{aligned}
-    	&\inf_{\gamma \in \calP(\Omega^{N+1})}
-    	H(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
-    	&\suchthat\ \mu_k = P^k_\#\gamma
-    \end{aligned}
-    \end{equation}
-    where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$. This is a generalized multimarginal optimal transport problem.
-    
-    \textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates and potential functions, by using a multimarginal generalization of a result from \textcite{chizat2016scaling}:
-    \begin{equation}\label{eq:TimeDiscreteDual}
-    	\sup_u -\imath_{\rho_0}^*(-u_0) - \sum_{k=1}^{N-1} F^*(-u_k) - G^*(-u_N)
-    	- \int_{\Omega^{N+1}} \left(\exp\left(\oplus_{k=0}^N u_k\right)-1\right) \,dR^N
-    \end{equation}
-    where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1}$.
-    
-	
-    \textcite{benamou2018entropy} introduce a Sinkhorn-like iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations inspired by \cite{chizat2016scaling}
-    \begin{thmalgo}
-   	Denote for $k=0,\ldots,N$ and $(a_j)_{j\neq k}$
-   	\[
-   		\calI_k((a_j)_{j\neq k})(z_k) = 
-   		\int_{\Omega^N} \prod_{j\neq k} a_j(x_j)\,
-   		dR^N(x_{0:k-1}, z_k, x_{k+1:N})
-   	\]
-   	the integral operator on the functions $a_j,j\neq k$ with respect to $R^N$ and variables $x_j$, $j\neq k$.
-   	For convenience we use the shorthand for the iterates
-   	\[
-   		\calI_k^{(n)} = \calI_k\left(\left(e^{u^{(n+1)}_j}\right)_{j<k}, \left(e^{u^{(n)}_j}\right)_{j>k}\right)
-   	\]
-   	for the $n$th iterate.
-   	
-   	Then we compute the dual potentials iteratively:
+\section{General setting: variational mean-field games}
+
+A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. In the continuous-time setting explored in \cite{LASRY2006679}, each agent evolves according to some dynamics and makes choices, but the response to his choices are affected by the states and choices of the numerous other agents -- leading to a so-called \textit{differential game} -- through a \textit{mean-field} effect.
+
+Several ways of modeling agent cross-interaction exist. More recently, \cite{benamou:hal-01295299} have focused on games where agent interactions take a variational form, allowing to penalize phenomenons such as congestion inside areas of the agent state space.
+
+
+The (Nash) equilibrium agent-control dynamics can be summarized by the system of coupled nonlinear partial differential equations:
+\begin{subequations}\label{eq:VariationalQuadraticMFG}
+\begin{align}\label{eq:VarQuadMFGHJB}
+-\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t] \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
+\partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
+\rho_0 \text{ given} \\
+u(T, \cdot) = g[\rho_T]
+\end{align}	
+\end{subequations}
+where and $t\mapsto \rho_t$ is a trajectory in the space of measures, and $\Omega$ is the standard Euclidean space $\RR^d$. The applications $f$ and $g$ are supposed to be derivatives of some real-valued functionals $F$ and $G$. For instance, if $G(\mu) = \int_\Omega \Psi\,d\mu(x)$ then its derivative is $g[\mu](x) = \Psi(x)$.
+
+The equations \eqref{eq:VarQuadMFGHJB}--\eqref{eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (forward Kolmogorov) equations.
+
+\subsection{The variational problem}
+
+The first idea of \cite{benamou:hal-01295299} is to cast the MFG partial differential equations to a variational problem over an appropriate function space. Denote $\WW_2(\Omega) = (\calP_2(\Omega), \calW_2)$ the set of probability measures with finite second moment, equipped with the Wasserstein metric
+\begin{equation}\label{eq:Wasserstein2Metric}
+   	\calW_2(\mu,\nu)^2 = \inf_{\gamma\in\Pi(\mu,\nu)}
+   	\int {|x-y|}^2 d\gamma
+\end{equation}
+where $\Pi(\mu,\nu) =\{ \gamma \in \calP_2(\Omega\times\Omega) : P^1_{\#}\gamma = \mu,\; P^2_{\#}\gamma = \nu \}$ is the set of transport plants from $\mu$ to $\nu$.
+Then, $\mathcal{C}([0, T], \WW_2(\Omega))$ is the Wiener space of continuous $\WW_2$-valued trajectories.
+\textcite{benamou:hal-01295299} show that the MFG be reformulated to the following variational problem:
+\begin{subequations}\label{eq:EulerianProblem}
+\begin{align}
+   	&\inf_{\rho,v} J(\rho, v) =
+   	\frac{1}{2}\int_0^T\int_\Omega |v_t|^2 \,d\rho_t(x)\,dt + \int_0^T F(\rho_t)\,dt + G(\rho_T)
+   	\\
+   	\suchthat\ &\partial_t \rho_t - \frac12\Delta \rho_t + \divg(\rho_t v) = 0 \\
+   	&\rho_0 \in \WW_2(\Omega)	
+\end{align}
+\end{subequations}
+where $\rho = (\rho_t)_{t\in[0,T]}\in \calC([0,T], \WW_2(\Omega))$ is a trajectory in $\WW_2$ and $v$ is a sufficiently regular function on $[0,T] \times \Omega$ (most likely a Sobolev space).
+
+\textcite{benamou2018entropy} also introduce the following partial problem:
+\begin{equation}\label{eq:FPhPartial}
+	\mathrm{FP}_h(\mu,\nu) =
+	\inf_{\rho, v} \int_0^h\int_\Omega |v_t|^2 d\rho_t(x)\,dt
+	\quad \suchthat\;
+	\partial_t\rho_t -\frac12\Delta\rho_t + \divg(\rho_tv),\;
+	\rho_0 = \mu,\; \rho_h = \nu
+\end{equation}
+It can be used to connect approximations of the solution measure to our MFG problem at discrete times $t_k = kh$, $k=0,\ldots,N$.
+
+This point of view \cite{benamou:hal-01295299} is called \textit{Eulerian}: we minimize over both the velocity $v$ and the time-trajectory of the agents' density $\rho$. It is not very practical because of the structure of the constraint (a Fokker-Planck equation). Instead, we could minimize over measures in the space of individual agents' trajectories, which is the base of the \textit{Lagrangian} formulation \cite{benamou2015lagrangian,benamou:hal-01295299} proposed by \citeauthor{benamou:hal-01295299} and that we explore in the sequel.
+
+
+\section{Lagrangian dual formulation}
+
+\subsection{Wiener space and measure}
+
+This new point of view involves a change in function spaces. We denote $\calX = \calC([0,T], \Omega)$ the Wiener space of (agents') trajectories $[0,T] \rightarrow\Omega$. Following \cites{benamou:hal-01295299,benamou2015lagrangian}, we equip it with the Wiener measure (the law of a Wiener process with any starting point $x$)
+\[
+   	R = \int_\Omega \delta_{x + W}\,dx
+\]
+  	where $W$ is a standard Wiener process in $\RR^d$. It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}.
+  	
+  	Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]} \in \calC([0,T], \calP(\Omega))$, with
+\[
+   	Q_t = e_{t\#}Q \in \calP(\Omega)
+\]
+the push-forward of $Q$ by the evaluation map $e_t\colon \xi\in\calX\longmapsto \xi(t)$. This naturally defines an injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
+
+\paragraph{Marginals of the Wiener measure $\boldsymbol{R}$.} We introduce the heat kernel
+$G_t(u) =
+\frac{1}{(2\pi t)^{d/2}} \exp\left(-\frac{|u|^2}{2t}\right)$.
+In particular, $R_t$ is the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$, and
+\begin{equation}\label{eq:2MarginWienerMeasure}
+   	R_{s,t}(dx,dy) = G_{t-s}(x-y)\,dx\,dy.
+\end{equation}
+
+\textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into a so-called Lagrangian optimization problem over the set of Borel probability measures (more specifically that associated with the Sobolev subspace $H^1$ of $\calX$). This new problem is solved in \cite{benamou:hal-01295299} using a finite element method, which is computationally expensive.
+
+
+
+
+\subsection{The entropic Lagrangian approach}
+
+Instead, \textcite{benamou2018entropy} propose using an entropy minimization approach to allow for a more computationally efficient method adapted from the Sinkhorn algorithm \cite{cuturi2013sinkhorn} developed by \citeauthor{cuturi2013sinkhorn}.
+
+This method, just like the Sinkhorn for OT between histograms (discrete measures), introduces some sort of entropic regularization \cite{benamou2018entropy}, but this time on the measure over the trajectory space $\calX$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{benamou:hal-01295299,benamou2015lagrangian}.
+
+For all measures $Q$ on $\calX$ admitting a density with respect to $R$, we define the relative entropy
+\begin{equation}\label{eq:VariationalEntropy}
+  	H(Q | R) = \int_\calX \ln\left(\frac{dQ}{dR}\right)\,dQ(\xi)
+\end{equation}
+The entropic Lagrangian variational problem is
+\begin{equation}\label{eq:EntropyLagrangianPb}
+\inf_{Q\in\calP(\calX)}
+H(Q|R) + \int_0^T F(Q_t)\,dt + G(Q_T),\
+\suchthat\ Q_0 = \rho_0
+\end{equation}
+
+\paragraph{Partial transport problem} \citeauthor{benamou2018entropy} provide another partial transport problem:
+\begin{equation}\label{eq:ShPartial}
+   	S_h(\mu, \nu) =
+   	\inf\left\{
+   		H(Q|R) : Q\in\calP(\calC([0,h], \Omega)),
+   		\; Q_0 = \mu,\; Q_h = \nu
+   	\right\}
+\end{equation}
+This problem can be seen as a continuous OT problem between the two measures $\mu$ and $\nu$. \textcite{benamou2018entropy} show that it is linked to the partial Eulerian problem \eqref{eq:FPhPartial} as
+\[
+   	S_h(\mu,\nu) = \mathrm{FP}_h(\mu,\nu) + \Ent \mu.
+\]
+The dimensionality of problem \eqref{eq:ShPartial} can be greatly simplified; according to \cite{benamou2018entropy} we can rewrite it as a static OT problem
+\begin{equation}
+   	S_h(\mu, \nu) = \inf\left\{ H(\gamma | R_{0,h}) : \gamma \in \Pi(\mu, \nu) \right\}.
+\end{equation}
+
+
+
+\section{Numerical algorithm}
+
+\subfile{parts/algo.tex}
+
+
+\subsection{Full discretization}
+
+For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points in $\RR^d$ of dimensionality $M = N_1\times\cdots\times N_d$. Integration is exchanged with summation.
+
+In the general case, the KL-projections in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly.
+
+
+\begin{remark}
+   	The KL-projection $\mu^* = \prox^{\KL}_{C_{\bar{m}}}(\beta)$ for the hard congestion function of a measure $\beta\in\RR^M$ is given by
    	\begin{equation}
-	   	\begin{dcases}
-	   	u_0^{(n+1)} = \argmax_{v \in L^\infty} -\imath_{\rho_0}^*(-v) - \int_{\Omega} e^{v(x_0)} \calI_0^{(n)} \,dx_0 \\
-	   	u_k^{(n+1)} = \argmax_{v \in L^\infty} -hF^*(-v) - \int_{\Omega} e^{v(x_k)} \calI_k^{(n)} \,dx_k,\quad 1\leq k < N \\
-	   	u_N^{(n+1)} = \argmax_{v \in L^\infty} -G^*(-v) - \int_{\Omega} e^{v(x_N)} \calI_N^{(n)} \,dx_N
-	   	\end{dcases}
+   		\mu^*_i
+   		= \min(\beta_i,\bar{m}_i)
    	\end{equation}
-  	until convergence.
+   	for all points $i$ in the grid.
+\end{remark}
+
+\begin{remark}
 	
-	By strong duality, the iterates $u_k^{(n)}$ satisfy
-	\begin{equation}
-		a_k^{(n)} =
-		\frac{
-			\prox_{F_k}^{\KL}(\calI_k^{(n)})
-		}{
-			\calI_k^{(n)}
-		}
-	\end{equation}
-	where $a^{(n)}_k = \exp(u^{(n)}_k)$ and
-	\[
-		\prox_F^{\KL}(z) = \argmin_{s\in L^1} F(s) + \KL(s|z).
-	\]
-	\end{thmalgo}
-    
-    
-    \begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
-   	In practice, the convex conjugates of the cost functions are difficult to compute. For some of the examples in the paper, we have closed-form conjugates.
-   	\begin{itemize}
-   		\item The conjugate of the convex indicatrix $\imath_{\nu}$ of any given measure $\nu$ is given by $\imath_{\nu}^*(u) = \langle u, \nu\rangle$.
-   		\item The hard congestion constraint $C_{\bar{m}}(\rho) = \begin{cases}
-   		0&\text{ if }\rho\leq \bar{m} \\
-   		+\infty&\text{ otherwise}
-   		\end{cases}$, has convex conjugate
-   		\[
-   		C_{\bar{m}}^*(u) = \sup_{\rho\leq \bar{m}}{} \langle \rho, u\rangle = \bar{m}\|u\|_{L^\infty(\Omega)}
-   		\]
-   		\item Obstacle constraints, given by
-   		\[
-   		F(\rho) = \int_\Omega V(x)\,d\rho(x) 
-   		\]
-   		where $V$ is the convex indicatrix of a set of obstacles $\mathscr{O} \subset \Omega$. Its conjugate is given for $u\in L^\infty(\Omega)$ by
-   		\[
-   		F^*(u) = \begin{cases}
-   		0& \text{ if } u \leq 0\text{ on }\Omega\backslash\mathscr{O} \\
-   		+\infty& \text{ otherwise}
-   		\end{cases}
-   		\]
-   	\end{itemize}
-    \end{remark}
-    
-    
-    
-    
-    \subsection{Full discretization}
-    
-    For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points in $\RR^d$ of dimensionality $M = N_1\times\cdots\times N_d$. Integration is exchanged with summation.
-    
-    In the general case, the KL-projections in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly.
-    
-    
-    \begin{remark}
-    	The KL-projection $\mu^* = \prox^{\KL}_{C_{\bar{m}}}(\beta)$ for the hard congestion function of a measure $\beta\in\RR^M$ is given by
-    	\begin{equation}
-    		\mu^*_i
-    		= \min(\beta_i,\bar{m}_i)
-    	\end{equation}
-    	for all points $i$ in the grid.
-    	
-    	
-    \end{remark}
-    
-    
-    \section{Examples}
-    
-    \subsection{Crowd congestion}
-    
-    
-    
-    
-    \printbibliography{}
-    
-    
-    
-    
-    
-    
-    
+\end{remark}
+
+
+
+\section{Examples}
+
+\subsection{Crowd congestion}
+
+
+
+
+\printbibliography{}
+
+
+
+
+
+
+
 \end{document}
