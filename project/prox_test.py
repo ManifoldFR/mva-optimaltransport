@@ -12,10 +12,14 @@ nx = 21
 xar = np.linspace(-1, 1, nx)
 xgrid, ygrid = np.meshgrid(xar, xar)
 
-sigma = 0.5
+sigma1 = 1.9
+sigma2 = 2.9
 
-## Gaussian density
-rho = np.exp(-0.5 * (xgrid**2 + ygrid**2) / sigma**2)
+## Gaussian mixture density
+rho1 = np.exp(-0.5 * ((xgrid+0.1)**2 + (ygrid)**2) / sigma1**2)
+rho2 = np.exp(-0.5 * ((xgrid-0.4)**2 + (ygrid-0.1)**2) / sigma2**2)
+
+rho = .3 * rho1 + .7 * rho2
 rho /= rho.sum()
 
 extent = [-1, 1, -1, 1]
@@ -69,7 +73,7 @@ for i in range(len(ratio_values)):
             extent=extent,
             vmax=rho.max())
     title = r"Projection $z = \mathrm{prox}^{KL}_{\leq M}(\rho)$"
-    title += "\n$\\rho_{\\mathrm{max}}="+f"{rho_values[i]:.3e}$"
+    title += "\n$M="+f"{rho_values[i]:.3e}$"
     plt.title(title)
 
 fig.subplots_adjust(right=0.88)

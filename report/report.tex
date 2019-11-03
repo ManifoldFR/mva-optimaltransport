@@ -45,9 +45,11 @@
 \newcommand{\calI}{\mathcal{I}}
 \newcommand{\calK}{\mathcal{K}}
 \newcommand{\calP}{\mathcal{P}}
+\newcommand{\calT}{\mathcal{T}}
 \newcommand{\calS}{\mathcal{S}}
 \newcommand{\calM}{\mathcal{M}}
 \newcommand{\calW}{\mathcal{W}}
+\newcommand{\calX}{\mathcal{X}}
 
 \newcommand{\suchthat}{\mathrm{s.t.}}
 
@@ -136,17 +138,17 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     
     \subsection{Wiener space and measure}
     
-    This new point of view involves a change in function spaces. We denote $\mathscr{E} = \calC([0,T], \Omega)$ the Wiener space of (agents') trajectories $[0,T] \rightarrow\Omega$. Following \cites{benamou:hal-01295299,benamou2015lagrangian}, we equip it with the Wiener measure (the law of a Wiener process with any starting point $x$)
+    This new point of view involves a change in function spaces. We denote $\calX = \calC([0,T], \Omega)$ the Wiener space of (agents') trajectories $[0,T] \rightarrow\Omega$. Following \cites{benamou:hal-01295299,benamou2015lagrangian}, we equip it with the Wiener measure (the law of a Wiener process with any starting point $x$)
     \[
     	R = \int_\Omega \delta_{x + W}\,dx
     \]
-   	where $W$ is a standard Wiener process in $\RR^d$. It is an analogue in the space $\mathscr{E}$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}.
+   	where $W$ is a standard Wiener process in $\RR^d$. It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}.
    	
-   	Measures $Q \in \calP(\mathscr{E})$ can also be seen as trajectories $(Q_t)_{t\in[0,T]} \in \calC([0,T], \calM(\Omega))$, with
+   	Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]} \in \calC([0,T], \calP(\Omega))$, with
     \[
     	Q_t = e_{t\#}Q \in \calP(\Omega)
     \]
-    the push-forward of $Q$ by the evaluation map $e_t\colon \xi\in\mathscr{E}\longmapsto \xi(t)$. This naturally defines an injection $\underline{i} \colon \calP(\mathscr{E}) \rightarrow \calC([0,T], \calP(\Omega))$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
+    the push-forward of $Q$ by the evaluation map $e_t\colon \xi\in\calX\longmapsto \xi(t)$. This naturally defines an injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
     
     \paragraph{Marginals of the Wiener measure $\boldsymbol{R}$.} We introduce the heat kernel
     $G_t(u) =
@@ -156,7 +158,7 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     	R_{s,t}(dx,dy) = G_{t-s}(x-y)\,dx\,dy.
     \end{equation}
     
-    \textcite{benamou:hal-01295299,benamou2015lagrangian} re-cast the Eulerian MFG variational problem \eqref{eq:EulerianProblem} into an optimization problem over the set of Borel probability measures (more specifically that associated with the Sobolev subspace $H^1$ of $\mathscr{E}$). This new optimization problem is solved in \cite{benamou:hal-01295299} using a finite element method, which is computationally expensive.
+    \textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into a so-called Lagrangian optimization problem over the set of Borel probability measures (more specifically that associated with the Sobolev subspace $H^1$ of $\calX$). This new problem is solved in \cite{benamou:hal-01295299} using a finite element method, which is computationally expensive.
     
     
     
@@ -165,15 +167,15 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     
     Instead, \textcite{benamou2018entropy} propose using an entropy minimization approach to allow for a more computationally efficient method adapted from the Sinkhorn algorithm \cite{cuturi2013sinkhorn} developed by \citeauthor{cuturi2013sinkhorn}.
     
-    This method, just like the Sinkhorn for OT between histograms (discrete measures), introduces some sort of entropic regularization \cite{benamou2018entropy}, but this time on the measure over the trajectory space $\mathscr{E}$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{achdou:hal-01456506}.
+    This method, just like the Sinkhorn for OT between histograms (discrete measures), introduces some sort of entropic regularization \cite{benamou2018entropy}, but this time on the measure over the trajectory space $\calX$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{benamou:hal-01295299,benamou2015lagrangian}.
     
-    For all measures $Q$ on $\mathscr{E}$ admitting a density with respect to $R$, we define the relative entropy
+    For all measures $Q$ on $\calX$ admitting a density with respect to $R$, we define the relative entropy
     \begin{equation}\label{eq:VariationalEntropy}
-   	H(Q | R) = \int_\mathscr{E} \ln\left(\frac{dQ}{dR}\right)\,dQ(\xi)
+   	H(Q | R) = \int_\calX \ln\left(\frac{dQ}{dR}\right)\,dQ(\xi)
     \end{equation}
-    The entropic Lagrangian version of \eqref{eq:EulerianProblem} is the variational problem
+    The entropic Lagrangian variational problem is
     \begin{equation}\label{eq:EntropyLagrangianPb}
-    \inf_{Q\in\calP(\mathscr{E})}
+    \inf_{Q\in\calP(\calX)}
     H(Q|R) + \int_0^T F(Q_t)\,dt + G(Q_T),\
     \suchthat\ Q_0 = \rho_0
     \end{equation}
@@ -192,7 +194,7 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     \]
     The dimensionality of problem \eqref{eq:ShPartial} can be greatly simplified; according to \cite{benamou2018entropy} we can rewrite it as a static OT problem
     \begin{equation}
-    	S_h(\mu, \nu) = \inf\left\{ H(\gamma, R_{0,h}) : \gamma \in \Pi(\mu, \nu) \right\}.
+    	S_h(\mu, \nu) = \inf\left\{ H(\gamma | R_{0,h}) : \gamma \in \Pi(\mu, \nu) \right\}.
     \end{equation}
     
     
@@ -214,7 +216,7 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     	\mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
     \]
     
-    The discretized entropy minimization problem can the be written
+    Thus, the discretized entropy minimization problem can be written as
     \[
     	\inf\left\{
     	\calS(\mu_0, \ldots, \mu_N) +
@@ -230,7 +232,7 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     	&\suchthat\ \mu_k = P^k_\#\gamma
     \end{aligned}
     \end{equation}
-    where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$.
+    where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$. This is a generalized multimarginal optimal transport problem.
     
     \textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates and potential functions, by using a multimarginal generalization of a result from \textcite{chizat2016scaling}:
     \begin{equation}\label{eq:TimeDiscreteDual}
@@ -239,40 +241,16 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     \end{equation}
     where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1}$.
     
-	\begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
-	In practice, the convex conjugates of the cost functions are difficult to compute. For some of the examples in the paper, we have closed-form conjugates.
-	\begin{itemize}
-		\item The conjugate of the convex indicatrix $\imath_{\nu}$ of any given measure $\nu$ is given by $\imath_{\nu}^*(u) = \langle u, \nu\rangle$.
-		\item The hard congestion constraint $F(\rho) = \begin{cases}
-		0&\text{ if }\rho\leq \bar{\rho} \\
-		+\infty&\text{ otherwise}
-		\end{cases}$, has convex conjugate
-		\[
-			F^*(u) = \sup_{\rho\leq \bar{\rho}}{} \langle \rho, u\rangle = \bar{\rho}\|u\|_{L^\infty(\Omega)}
-		\]
-		\item Obstacle constraints, given by
-		\[
-		F(\rho) = \int_\Omega V(x)\,d\rho(x) 
-		\]
-		where $V$ is the convex indicatrix of a set of obstacles $\mathscr{O} \subset \Omega$. Its conjugate is given for $u\in L^\infty(\Omega)$ by
-		\[
-		F^*(u) = \begin{cases}
-		0& \text{ if } u \leq 0\text{ on }\Omega\backslash\mathscr{O} \\
-		+\infty& \text{ otherwise}
-		\end{cases}
-		\]
-	\end{itemize}
-	\end{remark}
-    
+	
     \textcite{benamou2018entropy} introduce a Sinkhorn-like iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations inspired by \cite{chizat2016scaling}
     \begin{thmalgo}
    	Denote for $k=0,\ldots,N$ and $(a_j)_{j\neq k}$
    	\[
-   		\calI_k(a_{\neq k})(z_k) = 
-   		\int_{(x_{\neq k}) \in\Omega^N} \otimes_{j\neq k} a_j\,
+   		\calI_k((a_j)_{j\neq k})(z_k) = 
+   		\int_{\Omega^N} \prod_{j\neq k} a_j(x_j)\,
    		dR^N(x_{0:k-1}, z_k, x_{k+1:N})
    	\]
-   	the partial integral operator on the functions $a_j,j\neq k$ with respect to $R^N$.
+   	the integral operator on the functions $a_j,j\neq k$ with respect to $R^N$ and variables $x_j$, $j\neq k$.
    	For convenience we use the shorthand for the iterates
    	\[
    		\calI_k^{(n)} = \calI_k\left(\left(e^{u^{(n+1)}_j}\right)_{j<k}, \left(e^{u^{(n)}_j}\right)_{j>k}\right)
@@ -290,16 +268,45 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
   	until convergence.
 	
 	By strong duality, the iterates $u_k^{(n)}$ satisfy
-	\[
-		a_k^{(n)}\odot \calI_k^{(n)} =
-		\prox_{F_k}^{\KL}(\calI_k^{(n)})
-	\]
+	\begin{equation}
+		a_k^{(n)} =
+		\frac{
+			\prox_{F_k}^{\KL}(\calI_k^{(n)})
+		}{
+			\calI_k^{(n)}
+		}
+	\end{equation}
 	where $a^{(n)}_k = \exp(u^{(n)}_k)$ and
 	\[
 		\prox_F^{\KL}(z) = \argmin_{s\in L^1} F(s) + \KL(s|z).
 	\]
 	\end{thmalgo}
     
+    
+    \begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
+   	In practice, the convex conjugates of the cost functions are difficult to compute. For some of the examples in the paper, we have closed-form conjugates.
+   	\begin{itemize}
+   		\item The conjugate of the convex indicatrix $\imath_{\nu}$ of any given measure $\nu$ is given by $\imath_{\nu}^*(u) = \langle u, \nu\rangle$.
+   		\item The hard congestion constraint $C_{\bar{m}}(\rho) = \begin{cases}
+   		0&\text{ if }\rho\leq \bar{m} \\
+   		+\infty&\text{ otherwise}
+   		\end{cases}$, has convex conjugate
+   		\[
+   		C_{\bar{m}}^*(u) = \sup_{\rho\leq \bar{m}}{} \langle \rho, u\rangle = \bar{m}\|u\|_{L^\infty(\Omega)}
+   		\]
+   		\item Obstacle constraints, given by
+   		\[
+   		F(\rho) = \int_\Omega V(x)\,d\rho(x) 
+   		\]
+   		where $V$ is the convex indicatrix of a set of obstacles $\mathscr{O} \subset \Omega$. Its conjugate is given for $u\in L^\infty(\Omega)$ by
+   		\[
+   		F^*(u) = \begin{cases}
+   		0& \text{ if } u \leq 0\text{ on }\Omega\backslash\mathscr{O} \\
+   		+\infty& \text{ otherwise}
+   		\end{cases}
+   		\]
+   	\end{itemize}
+    \end{remark}
     
     
     
@@ -308,21 +315,25 @@ Optimal Transport and Entropic methods for solving variational Mean-Field Games}
     
     For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points in $\RR^d$ of dimensionality $M = N_1\times\cdots\times N_d$. Integration is exchanged with summation.
     
-    The iterations are solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}.
+    In the general case, the KL-projections in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly.
     
+    
+    \begin{remark}
+    	The KL-projection $\mu^* = \prox^{\KL}_{C_{\bar{m}}}(\beta)$ for the hard congestion function of a measure $\beta\in\RR^M$ is given by
+    	\begin{equation}
+    		\mu^*_i
+    		= \min(\beta_i,\bar{m}_i)
+    	\end{equation}
+    	for all points $i$ in the grid.
+    	
+    	
+    \end{remark}
     
     
     \section{Examples}
     
     \subsection{Crowd congestion}
     
-    Supposing a model where $F$ is the hard congestion functional, the Kantorovitch dual problem is written
-    \begin{equation}
-    \sup_u{} \langle\rho_0, u_0\rangle
-    - \sum_{k=1}^{N-1} \|u_k\|_{L^\infty(\Omega)} - \int_{\Omega^{N+1}} \left(
-    	\exp\left(\oplus_{k=0}^Nu_k\right) - 1
-    \right) \,dR^N
-    \end{equation}
     
     
     
