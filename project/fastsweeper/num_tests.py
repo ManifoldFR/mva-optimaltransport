@@ -48,5 +48,3 @@ print("Updated C")
 elapsed = time.time() - t
 
 print(f"Elapsed time: {elapsed:.3e}s")
-
-#### 
