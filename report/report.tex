@@ -1,17 +1,18 @@
 \documentclass{article}
 
-\usepackage[a4paper]{geometry}
-\usepackage{hyperref}
 \usepackage{subfiles}
+\usepackage[a4paper]{geometry}
+\usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{amssymb}
+\usepackage{hyperref,cleveref}
 \usepackage{dsfont,mathrsfs}
 \usepackage[
 linesnumbered,lined,boxed
 ]{algorithm2e}
 
 \usepackage[dvipsnames]{xcolor}
-\usepackage{amsthm,thmtools}
+\usepackage{amsthm}
 
 \usepackage{graphicx}
 
@@ -28,6 +29,8 @@ backend=biber
 colorlinks,
 citecolor=Green
 }
+
+\crefalias{prop}{proposition}
 
 %%% DEFINE MACROS %%%
 
@@ -52,6 +55,9 @@ citecolor=Green
 
 \newcommand{\suchthat}{\mathrm{s.t.}}
 
+\renewcommand{\phi}{\varphi}
+\renewcommand{\epsilon}{\varepsilon}
+
 \DeclareMathOperator{\divg}{div}
 \DeclareMathOperator{\Ent}{Ent}
 \DeclareMathOperator{\supp}{supp}
@@ -61,15 +67,14 @@ citecolor=Green
 \DeclareMathOperator{\KL}{KL}
 \DeclareMathOperator{\prox}{prox}
 
+\numberwithin{equation}{section}
+
 %% THEOREM ENVS %%
 
-\declaretheorem[thmbox=S]{remark}
-\declaretheorem[
-thmbox=S,
-name=Algorithm,
-sibling=algocf
-]{thmalgo}
-
+\newtheorem{prop}{Proposition}
+\newtheorem{thmalgo}{Algorithm}
+\theoremstyle{definition}
+\newtheorem{remark}{Remark}
 
 \author{Wilson \textsc{Jallet}}
 \title{
@@ -98,7 +103,7 @@ The (Nash) equilibrium agent-control dynamics can be summarized by the system of
 \end{subequations}
 where and $t\mapsto \rho_t$ is a trajectory in the space of measures, and $\Omega$ is the standard Euclidean space $\RR^d$. The applications $f$ and $g$ are supposed to be derivatives of some real-valued functionals $F$ and $G$. For instance, if $G(\mu) = \int_\Omega \Psi\,d\mu(x)$ then its derivative is $g[\mu](x) = \Psi(x)$.
 
-The equations \eqref{eq:VarQuadMFGHJB}--\eqref{eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (forward Kolmogorov) equations.
+The equations \eqref{eq:VarQuadMFGHJB}--\eqref{eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (forward Kolmogorov) equations. They can be solved in some cases using finite-difference methods (see \cite{achdou:hal-01456506}).
 
 \subsection{The variational problem}
 
@@ -188,37 +193,26 @@ This problem can be seen as a continuous OT problem between the two measures $\m
 \[
    	S_h(\mu,\nu) = \mathrm{FP}_h(\mu,\nu) + \Ent \mu.
 \]
-The dimensionality of problem \eqref{eq:ShPartial} can be greatly simplified; according to \cite{benamou2018entropy} we can rewrite it as a static OT problem
+The dimensionality of problem \eqref{eq:ShPartial} can be greatly simplified: \cite{benamou2018entropy} shows that we can rewrite it as a static OT problem
 \begin{equation}
    	S_h(\mu, \nu) = \inf\left\{ \KL(\gamma | R_{0,h}) : \gamma \in \Pi(\mu, \nu) \right\}.
 \end{equation}
 
 
+\subsection{Viscosity and the deterministic limit}
+
+We change the MFG problem to one following the agent-level dynamics $dX_t = v_t dt + \sigma dW_t$. The MFG equilibrium equations become
+\begin{equation}
+\begin{aligned}
+	-\partial_t u - \frac{\sigma^2}{2}\Delta u + \frac12 |\nabla u|^2 &= f[\rho_t] \\
+	\partial_t \rho - \frac{\sigma^2}{2}\Delta\rho - \divg(\rho\nabla u) &= 0
+\end{aligned}	
+\end{equation}
+
 
 \section{Numerical algorithm}
 
 \subfile{parts/algo.tex}
-
-
-\subsection{Full discretization}
-
-For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points in $\RR^d$ of dimensionality $M = N_1\times\cdots\times N_d$. Integration is exchanged with summation.
-
-In the general case, the KL-projections in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly.
-
-
-\begin{remark}
-   	The KL-projection under the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
-   	\begin{equation}
-   		\prox^{\KL} _C(\beta) = \min(\beta,\overline{m})
-   	\end{equation}
-   	where the minimum is taken element-wise.
-   	
-   	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the proximal operator reads
-   	\begin{equation}
-   		\prox^{\KL}_F(\beta) = \min(\beta, \bar{m}\mathds{1}_{\Omega\backslash\mathscr{O}}).
-   	\end{equation}
-\end{remark}
 
 
 
