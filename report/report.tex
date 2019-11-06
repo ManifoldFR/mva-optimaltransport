@@ -90,11 +90,11 @@ Several ways of modeling agent cross-interaction exist. More recently, \cite{ben
 The (Nash) equilibrium agent-control dynamics can be summarized by the system of coupled nonlinear partial differential equations:
 \begin{subequations}\label{eq:VariationalQuadraticMFG}
 \begin{align}\label{eq:VarQuadMFGHJB}
--\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t] \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
-\partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
-\rho_0 \text{ given} \\
-u(T, \cdot) = g[\rho_T]
-\end{align}	
+	-\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t] \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
+	\partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
+	\rho_0 &\text{ given} \\
+	u(T, \cdot) &= g[\rho_T]
+\end{align}
 \end{subequations}
 where and $t\mapsto \rho_t$ is a trajectory in the space of measures, and $\Omega$ is the standard Euclidean space $\RR^d$. The applications $f$ and $g$ are supposed to be derivatives of some real-valued functionals $F$ and $G$. For instance, if $G(\mu) = \int_\Omega \Psi\,d\mu(x)$ then its derivative is $g[\mu](x) = \Psi(x)$.
 
@@ -169,14 +169,10 @@ Instead, \textcite{benamou2018entropy} propose using an entropy minimization app
 
 This method, just like the Sinkhorn for OT between histograms (discrete measures), introduces some sort of entropic regularization \cite{benamou2018entropy}, but this time on the measure over the trajectory space $\calX$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{benamou:hal-01295299,benamou2015lagrangian}.
 
-For all measures $Q$ on $\calX$ admitting a density with respect to $R$, we define the relative entropy
-\begin{equation}\label{eq:VariationalEntropy}
-  	H(Q | R) = \int_\calX \ln\left(\frac{dQ}{dR}\right)\,dQ(\xi)
-\end{equation}
 The entropic Lagrangian variational problem is
 \begin{equation}\label{eq:EntropyLagrangianPb}
 \inf_{Q\in\calP(\calX)}
-H(Q|R) + \int_0^T F(Q_t)\,dt + G(Q_T),\
+\KL(Q|R) + \int_0^T F(Q_t)\,dt + G(Q_T),\
 \suchthat\ Q_0 = \rho_0
 \end{equation}
 
@@ -184,7 +180,7 @@ H(Q|R) + \int_0^T F(Q_t)\,dt + G(Q_T),\
 \begin{equation}\label{eq:ShPartial}
    	S_h(\mu, \nu) =
    	\inf\left\{
-   		H(Q|R) : Q\in\calP(\calC([0,h], \Omega)),
+   		\KL(Q|R) : Q\in\calP(\calC([0,h], \Omega)),
    		\; Q_0 = \mu,\; Q_h = \nu
    	\right\}
 \end{equation}
@@ -194,7 +190,7 @@ This problem can be seen as a continuous OT problem between the two measures $\m
 \]
 The dimensionality of problem \eqref{eq:ShPartial} can be greatly simplified; according to \cite{benamou2018entropy} we can rewrite it as a static OT problem
 \begin{equation}
-   	S_h(\mu, \nu) = \inf\left\{ H(\gamma | R_{0,h}) : \gamma \in \Pi(\mu, \nu) \right\}.
+   	S_h(\mu, \nu) = \inf\left\{ \KL(\gamma | R_{0,h}) : \gamma \in \Pi(\mu, \nu) \right\}.
 \end{equation}
 
 
@@ -212,23 +208,23 @@ In the general case, the KL-projections in the Sinkhorn iterations can be solved
 
 
 \begin{remark}
-   	The KL-projection $\mu^* = \prox^{\KL}_{C_{\bar{m}}}(\beta)$ for the hard congestion function of a measure $\beta\in\RR^M$ is given by
+   	The KL-projection under the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
    	\begin{equation}
-   		\mu^*_i
-   		= \min(\beta_i,\bar{m}_i)
+   		\prox^{\KL} _C(\beta) = \min(\beta,\overline{m})
    	\end{equation}
-   	for all points $i$ in the grid.
-\end{remark}
-
-\begin{remark}
-	
+   	where the minimum is taken element-wise.
+   	
+   	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the proximal operator reads
+   	\begin{equation}
+   		\prox^{\KL}_F(\beta) = \min(\beta, \bar{m}\mathds{1}_{\Omega\backslash\mathscr{O}}).
+   	\end{equation}
 \end{remark}
 
 
 
 \section{Examples}
 
-\subsection{Crowd congestion}
+\subfile{parts/examples.tex}
 
 
 
