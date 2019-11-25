@@ -1,0 +1,146 @@
+\documentclass[../report.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Time discretization}
+
+Let $N$ be the number of discrete steps for the time discretization of the problem, and $h=T/N$ the time step.
+
+\textcite{benamou2018entropy} propose a discretization of \eqref{eq:EntropyLagrangianProblem} obtained by connecting the marginals through a multimarginal OT problem:
+\begin{equation}
+\calS(\mu_0,\ldots,\mu_N) =
+\inf_{\gamma \in \Pi(\mu_0, \ldots, \mu_N)}
+H(\gamma|R^N)
+\end{equation}
+where $t_k = kh$, $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$.
+Then, define
+\begin{equation}
+\mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
+\end{equation}
+
+Thus, the discretized entropy minimization problem can be written as
+\[
+\inf\left\{
+\calS(\mu_0, \ldots, \mu_N) +
+\mathcal{U}(\mu_0, \ldots, \mu_N)
+: \mu_k \in \calP_2(\Omega),\; \mu_0 = \rho_0
+\right\}.
+\]
+Expanding the inf-within-inf leads to the following convex optimization problem:
+\begin{equation}
+\begin{aligned}
+&\inf_{\gamma \in \calP(\Omega^{N+1})}
+H(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
+&\suchthat\ \mu_k = P^k_\#\gamma
+\end{aligned}
+\end{equation}
+where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$. This is a generalized multimarginal optimal transport problem.
+
+\textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates and potential functions, by using a multimarginal generalization of a result from \textcite{chizat2016scaling}:
+\begin{equation}\label{eq:TimeDiscreteDual}
+\sup_u -\imath_{\rho_0}^*(-u_0) - \sum_{k=1}^{N-1} F^*(-u_k) - G^*(-u_N)
+- \int_{\Omega^{N+1}} \left(\exp\left(\oplus_{k=0}^N u_k\right)-1\right) \,dR^N
+\end{equation}
+where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1}$.
+
+
+\textcite{benamou2018entropy} introduce a Sinkhorn-like iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations inspired by \cite{chizat2016scaling}
+\begin{thmalgo}\label{algo:Algo1}
+	Denote for $k=0,\ldots,N$ and $(a_j)_{j\neq k}$
+	\[
+	\calI_k((a_j)_{j\neq k})(z_k) = 
+	\int_{\Omega^N} \prod_{j\neq k} a_j(x_j)\,
+	dR^N(x_{0:k-1}, z_k, x_{k+1:N})
+	\]
+	the integral of functions $a_j,j\neq k$ with respect to $R^N$ and variables $x_j$, $j\neq k$.
+	For convenience we use the shorthand
+	\[
+	\calI_k^{(n)} = \calI_k\left(\left(e^{u^{(n+1)}_j}\right)_{j<k}, \left(e^{u^{(n)}_j}\right)_{j>k}\right)
+	\]
+	for the $n$th iterate.
+	
+	Then we compute the dual potentials iteratively:
+	\begin{equation}
+	\begin{dcases}
+	u_0^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{-v(x_0)}) \calI_0^{(n)} \,dx_0 - \imath_{\rho_0}^*(v) \\
+	u_k^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1- e^{-v(x_k)}) \calI_k^{(n)} \,dx_k - hF^*(v) ,
+	\quad 1\leq k < N  \\
+	u_N^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{-v(x_N)}) \calI_N^{(n)} \,dx_N - G^*(v)
+	\end{dcases}
+	\end{equation}
+	until convergence.
+	
+	Using duality, we find that the iterates $u_k^{(n)}$ satisfy
+	\begin{equation}
+	a_k^{(n)} = \exp(-u^{(n)}_k) =
+	\frac{
+		\prox_{F_k}^{\KL}(\calI_k^{(n)})
+	}{
+		\calI_k^{(n)}
+	}
+	\end{equation}
+	where
+	\[
+	\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z).
+	\]
+\end{thmalgo}
+
+\begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
+	In practice, the convex conjugates of the cost functions are difficult to compute. For some of the examples in the paper, we have closed-form conjugates.
+	\begin{itemize}
+		\item The conjugate of the convex indicatrix $\imath_{\nu}$ of any measure $\nu$ is given by $\imath_{\nu}^*(u) = \langle u, \nu\rangle$.
+		\item The hard congestion constraint
+		\[
+		C(\rho) = \begin{cases}
+		0&\text{ if }\rho\leq \bar{m} \\
+		+\infty&\text{ otherwise}
+		\end{cases}
+		\]
+		has convex conjugate (on the domain $\rho \geq 0$)
+		\[
+		C^*(u) = \sup_{\rho\leq \bar{m}}{} \langle u, \rho\rangle = \langle u^{+}, \bar{m}\mathds{1}\rangle
+		\]
+		\item Obstacle constraints, given by
+		\[
+		F(\rho) = \int_\Omega V(x)\,d\rho(x) =
+		\begin{cases}
+		0 & \text{ if } \rho = 0\text{ on }\mathscr{O} \\
+		+\infty & \text{ otherwise}
+		\end{cases}
+		= \imath_{0}(\mathds{1}_{\mathscr{O}}\rho)
+		\]
+		where $V$ is the convex indicatrix of the complement $\Omega\backslash\mathscr{O}$ of the obstacles. Its conjugate is given by
+		\[
+		F^*(u) =
+		\begin{cases}
+		0& \text{ if } u \leq 0\text{ on } \Omega\backslash\mathscr{O} \\
+		+\infty& \text{ otherwise}
+		\end{cases}
+		\]
+	\end{itemize}
+\end{remark}
+
+
+
+\subsection{Full discretization}
+
+For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points in $\RR^d$ of dimensionality $M = N_1\times\cdots\times N_d$. Integration is exchanged with summation.
+
+In the general case, the KL-projections in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly.
+
+
+\begin{prop}
+	The KL-projection under the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
+	\begin{equation}
+	\prox^{\KL} _C(\beta) = \min(\beta,\overline{m})
+	\end{equation}
+	where the minimum is taken element-wise.
+	
+	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the proximal operator reads
+	\begin{equation}
+	\prox^{\KL}_F(\beta) = \min(\beta, \bar{m}\mathds{1}_{\Omega\backslash\mathscr{O}}).
+	\end{equation}
+\end{prop}
+
+
+\end{document}
