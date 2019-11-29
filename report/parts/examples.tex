@@ -18,27 +18,38 @@ Thus, the agents engage in a one-round mean-field game where they are only conce
 The discretized MFG problem with viscosity parameter $\epsilon = \sigma^2$ can be written as the following transport problem:
 \begin{equation}\label{eq:2MargFuzzyObstacleObj}
 \begin{aligned}
-	&\inf_\gamma{} \langle \Psi, \gamma^T\mathds{1}\rangle + \epsilon H(\gamma | R_\epsilon) \\
+	&\inf_\gamma{} \langle \Psi, \gamma^T\mathds{1}\rangle + \epsilon \KL(\gamma | \bfR) \\
 	\suchthat\ & \gamma\mathds{1} = \rho_0, \quad \gamma^T\mathds{1} \odot \mathds{1}_{\mathscr{O}} = 0
 	\end{aligned}
 \end{equation}
-The interesting aspect of this problem is observing what kind of optimal distribution $\rho^*_1 = (\gamma^*)^T\mathds{1}$ the agents reach.
+In this two-marginal case, the matrix $\bfR = \bfP$ is the discretization of the heat kernel $P_h$ as discussed in \cref{sec:PartialDiscret}:
+\[
+	\bfR_{i,j} = P_{h\epsilon}(x_j - x_i)
+\]
+for all grid indices $i,j$.
+
+
+
+In this problem we want to observe the optimal target distribution $\rho^*_1 = (\gamma^*)^T\mathds{1}$ the agents reach at the final time $t=1$.
 
 \begin{prop}\label{thm:2MargFuzzyTarget}
 Problem \eqref{eq:2MargFuzzyObstacleObj} can be solved in closed form: the Lagrange multiplier $u_0^*$ for the marginal law constraint satisfies
 \[
-e^{-u_0^*}  = \frac{\rho_0}{R_\epsilon a^*_1}
+	a_0^* = e^{-u_0^*/\epsilon}  = \frac{\rho_0}{\bfR a^*_1}
 \]
 where $a^*_1 = e^{-\Psi/\epsilon}\odot\mathds{1}_{\Omega\backslash\mathscr{O}}$, and the optimal coupling is
 \[
-	\gamma^* = R_\epsilon \odot (e^{-u^*}\otimes \hat{\phi})	
+	\gamma^* = \bfR\odot (a_0^* \otimes a_1^*)	
 \]
-It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$.
+It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$. The final distribution of agents is
+\[
+	\rho_1 = \gamma^T\mathds{1} = a_1^* \odot \bfR a_0^*
+\]
 \end{prop}
  
 \paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the discrete MFG \eqref{eq:2MargFuzzyObstacleObj}. \cref{fig:2MargFuzzyTransportObstacles} provides a representation of both . We also checked the results when removing the constraints on the obstacles (essentially setting $\mathscr{O}$), and when lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}).
 
-Of course, replacing $G$ by a hard marginal constraint turns the problem into a classical regularized OT problem, and the above proposition leads to usual Sinkhorn iterations on the grid. The matrix-vector product in the Lagrange multiplier potentially becomes a computational bottleneck, but the separability of the heat kernel $R_\epsilon$ allows for fast computation using simple 1D convolutions.
+Since the kernel $\bfR$ on the domain is separable, the convolution can be sped up \cite[ch.~4]{peyr2018computational}.
 
 
 \begin{figure}
@@ -50,19 +61,19 @@ Of course, replacing $G$ by a hard marginal constraint turns the problem into a 
 
 \begin{figure}
 	\centering
-	\begin{subfigure}{.75\linewidth}
+	\begin{subfigure}{.82\linewidth}
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_withobstacle.png}
 	\caption{Result of the ``fuzzy" transport problem with enforcement of the obstacle constraints and viscosity parameter $\sigma=1$.}\label{fig:2MargFuzzyTransportObstacles}
 	\end{subfigure}
-	\begin{subfigure}[t]{.38\linewidth}
+	\begin{subfigure}[t]{.4\linewidth}
 	\centering
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_noobstacle.png}
 	\caption{Final distribution $\rho^*_1$ without enforcing the obstacles. The mass of the distribution ``bleeds" through the obstacles. }\label{fig:2MargFuzzyTransportRelaxedObst}
-	\end{subfigure}
-	\begin{subfigure}[t]{.38\linewidth}
+	\end{subfigure}~
+	\begin{subfigure}[t]{.4\linewidth}
 	\centering
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_lowvisc.png}
-	\caption{Obstacles are constrained as in \cref{fig:2MargFuzzyTransportObstacles}, but with a lower viscosity parameter $\sigma=0.4$.}\label{fig:2MargFuzzyTransportLowVisc}
+	\caption{Obstacles are constrained as in \cref{fig:2MargFuzzyTransportObstacles}, but with viscosity parameter $\sigma=0.4$.}\label{fig:2MargFuzzyTransportLowVisc}
 	\end{subfigure}
 	\caption{Marginal distributions of the solution of two-step MFG or ``fuzzy transport" problem \eqref{eq:2MargFuzzyObstacleObj}, with a few variations.}\label{fig:2MargFuzzyTransportMarginals}
 \end{figure}
@@ -88,27 +99,60 @@ Of course, replacing $G$ by a hard marginal constraint turns the problem into a 
 	\caption{Setup and solution for the discrete MFG using the time-to-exit potential discussed in \cref{rmk:SmartPotential}.}
 \end{figure}
 
-\subsubsection{One intermediate time step}
+\subsubsection{Three time steps}
 
 We now go up to three marginals $(\rho_0,\rho_1,\rho_2)$. We assign to the single intermediate marginal $\rho_1$ the congestion constraint $\rho_1 \leq \bar{m}$ and the obstacle constraint. The primal problem then reads
 \begin{equation}
 \begin{aligned}
-	&\inf_{\gamma,\rho_1,\rho_2}{} \langle \Psi, \rho_2\rangle + \epsilon H(\gamma | R_\epsilon) \\
-	\suchthat \ & P^k_\#\gamma = \rho_k,\; k = 1,2 \\
+	&\inf_{\gamma,\rho_1,\rho_2}{} \langle \Psi, \rho_2\rangle + \epsilon \KL(\gamma | \bfR) \\
+	\suchthat \ & P^k_\#\gamma = \rho_k,\; k = 0,1,2 \\
 	& \rho_1 \leq \bar{m} \\
 	& \rho_1\odot\mathds{1}_{\mathscr O} = 0\\
 	& \rho_2\odot\mathds{1}_{\mathscr O} = 0
 \end{aligned}
 \end{equation}
 
+Contraction/convolution with the kernel $\bfR$ in this case satisfies
+\[
+\begin{aligned}
+	&\bfR[\cdot,v,w] = 
+	\mathbf{P} (v \odot \mathbf{P}w) \\
+	&\bfR[u,\cdot,w]
+	= (\mathbf{P}^Tu) \odot (\mathbf{P}w)  \\
+	&\bfR[u, v, \cdot] = 
+	\mathbf{P}^T (v \odot \mathbf{P}^T u)
+\end{aligned}
+\]
+
 \begin{prop}
 The Lagrange multipliers $u_i^*$ at the optimum satisfy the fixed-point conditions:
 \begin{align*}
-	&a_0^* = \frac{\rho_0}{R_\epsilon[\cdot, a_1^*, a_2^*]} \\
-	&a_1^* = \min\left(\frac{\bar{m}}{R_\epsilon[a_0^*,\cdot,a_1^*]}\right)
+	&a_0^* = \frac{\rho_0}{\bfR[\,\cdot\,, a_1^*, a_2^*]} \\
+	&a_1^* = \min\left(
+	\frac{\bar{m}}{\bfR[a_0^*, \,\cdot\,, a_2^*]}, 1\right)
 \end{align*}
-where $a_i^* = \exp(-u_i^*)$, $a_1^*$ is supported on $\Omega\backslash\mathscr{O}$ and $a_2^* = e^{-\Psi/\epsilon}\odot\mathds{1}_{\Omega\backslash\mathscr{O}}$, and we denote $R_\epsilon[\cdot,\cdot,\cdot]$ the tensor product by $R_\epsilon$.
+where $a_i^* = \exp(-u_i^*)$, $a_1^*$ is supported on $\Omega\backslash\mathscr{O}$ and $a_2^* = e^{-\Psi/\epsilon}\odot\mathds{1}_{\Omega\backslash\mathscr{O}}$, and we denote $\bfR[\cdot,\cdot,\cdot]$ the appropriate tensor contraction by $\bfR$.
+
+The marginals are obtained as
+\[
+	\rho_1^* =
+	a_1^* \odot
+	\bfR[a_0^*, \,\cdot\,, a_2^*] =
+	a_1^* \odot
+	(\mathbf{P}^Ta_0^*) \odot
+	(\mathbf{P}a_2^*)
+\]
+and
+\[
+	\rho_2^* = 
+	a_2^* \odot \bfR[a_0^*, a_1^*, \,\cdot\,]
+	= a_2^* \odot
+	\mathbf{P}^T
+	(a_1^* \odot \mathbf{P}^Ta_0^*)
+\]
 \end{prop}
+
+
 
 The fixed point can then computed using an iterative algorithm à la generalized Sinkhorn, just as in the Algorithm \autoref{algo:Algo1} suggested by \cite{benamou2018entropy}.
 

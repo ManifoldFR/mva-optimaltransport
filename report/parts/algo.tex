@@ -30,7 +30,7 @@ Expanding the inf-within-inf leads to the following convex optimization problem:
 \begin{equation}
 \begin{aligned}
 &\inf_{\gamma \in \calP(\Omega^{N+1})}
-H(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
+\KL(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
 &\suchthat\ \mu_k = P^k_\#\gamma
 \end{aligned}
 \end{equation}
@@ -38,26 +38,30 @@ where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is 
 
 \textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates and potential functions, by using a multimarginal generalization of a result from \textcite{chizat2016scaling}:
 \begin{equation}\label{eq:TimeDiscreteDual}
-\sup_u -\imath_{\rho_0}^*(-u_0) - \sum_{k=1}^{N-1} F^*(-u_k) - G^*(-u_N)
-- \int_{\Omega^{N+1}} \left(\exp\left(\oplus_{k=0}^N u_k\right)-1\right) \,dR^N
+\sup_u
+\int_{\Omega^{N+1}} \left(1-\exp\left(\oplus_{k=0}^N u_k\right)\right) \,dR^N
+-\imath_{\rho_0}^*(-u_0) - \sum_{k=1}^{N-1} F^*(-u_k) - G^*(-u_N)
 \end{equation}
 where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1}$.
 
 
-\textcite{benamou2018entropy} introduce a Sinkhorn-like iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations inspired by \cite{chizat2016scaling}
+\textcite{benamou2018entropy} introduce a Sinkhorn-like iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations inspired by \cite{chizat2016scaling}.
+
 \begin{thmalgo}\label{algo:Algo1}
 	Denote for $k=0,\ldots,N$ and $(a_j)_{j\neq k}$
 	\[
-	\calI_k((a_j)_{j\neq k})(z_k) = 
-	\int_{\Omega^N} \prod_{j\neq k} a_j(x_j)\,
-	dR^N(x_{0:k-1}, z_k, x_{k+1:N})
+	\calI_k((a_j)_{j\neq k})(\tilde{x}_k) = 
+	\int_{\Omega^N}
+	\prod_{j\neq k} a_j(x_j)
+	R^N(dx_{0:k-1}, \tilde{x}_k, dx_{k+1:N})
 	\]
-	the integral of functions $a_j,j\neq k$ with respect to $R^N$ and variables $x_j$, $j\neq k$.
+	the partial integral of the $a_j,j\neq k$ with respect to $R^N$ without variable $x_k$.
 	For convenience we use the shorthand
 	\[
-	\calI_k^{(n)} = \calI_k\left(\left(e^{u^{(n+1)}_j}\right)_{j<k}, \left(e^{u^{(n)}_j}\right)_{j>k}\right)
+	\calI_k^{(n)} = \calI_k\left(\left(a^{(n+1)}_j\right)_{j<k},
+	\left(a^{(n)}_j\right)_{j>k}\right)
 	\]
-	for the $n$th iterate.
+	for the $n$th iterate where we denote $a_j = \exp(-u_j)$.
 	
 	Then we compute the dual potentials iteratively:
 	\begin{equation}
@@ -72,17 +76,17 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 	
 	Using duality, we find that the iterates $u_k^{(n)}$ satisfy
 	\begin{equation}
-	a_k^{(n)} = \exp(-u^{(n)}_k) =
+	{\bluefont
+	a_k^{(n)} = \exp\left(-u^{(n)}_k\right) =
 	\frac{
 		\prox_{F_k}^{\KL}(\calI_k^{(n)})
-	}{
-		\calI_k^{(n)}
-	}
+	}{\calI_k^{(n)}}}
 	\end{equation}
 	where
 	\[
-	\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z).
+		\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z)
 	\]
+	is the KL-proximal operator.
 \end{thmalgo}
 
 \begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
@@ -122,25 +126,47 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 
 
 
-\subsection{Full discretization}
+\subsection{Spatial discretization}\label{sec:PartialDiscret}
 
-For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points in $\RR^d$ of dimensionality $M = N_1\times\cdots\times N_d$. Integration is exchanged with summation.
+For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points $x_i$ in $\RR^d$ of size $M = N_1\times\cdots\times N_d$, and we naturally exchange convolution with the heat kernel for discrete convolution.  This will be the main computational issue.
 
+
+\paragraph{Projections.}
 In the general case, the KL-projections in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly.
 
 
 \begin{prop}
-	The KL-projection under the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
+	The KL-projection on the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
 	\begin{equation}
-	\prox^{\KL} _C(\beta) = \min(\beta,\overline{m})
+	\prox^{\KL}_C(\beta) = \min(\beta,\overline{m})
 	\end{equation}
 	where the minimum is taken element-wise.
 	
+	The KL-projection on the obstacle constraint is
+	\begin{equation}
+	\prox^{\KL}(\beta) = \beta \mathds{1}_{\Omega\backslash\mathscr{O}}
+	\end{equation}
+	
 	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the proximal operator reads
 	\begin{equation}
-	\prox^{\KL}_F(\beta) = \min(\beta, \bar{m}\mathds{1}_{\Omega\backslash\mathscr{O}}).
+	\prox^{\KL}_F(\beta) = \min(\beta, \bar{m})\mathds{1}_{\Omega\backslash\mathscr{O}}.
 	\end{equation}
 \end{prop}
+
+
+\paragraph{Efficient convolution.} Denote $\bfR \in \RR^{M^N}$ the discretized measure $R^N$. Summation of multiple vectors $u_0,\ldots,u_N$ with respect to $\bfR$ is the following tensor contraction
+\[
+	\bfR[u_0,\ldots,u_N] =
+	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N u_{i_k}
+\]
+The multi-marginal kernel $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. This allows us to write the partial convolution $\calI_k$ (leaving the $k$th component out) as
+\begin{equation}
+	\calI_k = \bfR[(u_j)_{j\neq k}] =
+	\mathbf{A}_{k-1} \odot \mathbf{B}_{k+1}
+\end{equation}
+where $\mathbf{A}_{k} = \bfP^T (a_k \odot \bfP^T(a_{k-1} \odot \cdots))$ and $\mathbf{B}_k = \bfP (a_k \odot \bfP (a_{k+1}\odot \cdots))$.
+
+
 
 
 \end{document}

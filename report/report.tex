@@ -1,7 +1,7 @@
-\documentclass{article}
+\documentclass[11pt]{article}
 
 \usepackage{subfiles}
-\usepackage[a4paper,hmargin=3.4cm]{geometry}
+\usepackage[a4paper,hmargin=3.2cm]{geometry}
 \usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{amssymb}
@@ -43,6 +43,10 @@ citecolor=Green
 \newcommand{\BB}{\mathbb{B}}
 \newcommand{\WW}{\mathbb{W}}
 
+\newcommand{\bfR}{\mathbf{R}}
+\newcommand{\bfP}{\mathbf{P}}
+
+
 \newcommand{\calC}{\mathcal{C}}
 \newcommand{\calI}{\mathcal{I}}
 \newcommand{\calK}{\mathcal{K}}
@@ -69,6 +73,12 @@ citecolor=Green
 
 \numberwithin{equation}{section}
 
+%% Colors %%
+
+\newcommand{\bluefont}{\color{RoyalBlue}}
+\newcommand{\redfont}{\color{Red}}
+
+
 %% THEOREM ENVS %%
 
 \newtheorem{prop}{Proposition}
@@ -78,24 +88,29 @@ citecolor=Green
 
 \author{Wilson \textsc{Jallet}}
 \title{
-{\large\textit{Computational Optimal Transport} -- \textsf{Project report:}}\\
-Regularized Optimal Transport methods for solving variational Mean-Field Games}
+	{\Large\itshape Computational Optimal Transport}\\
+	{\Large Regularized Optimal Transport methods for solving variational Mean-Field Games}}
 
 \begin{document}
 \maketitle
 
 
-\section{General setting: variational mean-field games}
+\section{Quadratic Mean-field games}
 
 A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. In the continuous-time setting explored in \cite{LASRY2006679}, each agent evolves according to some dynamics -- leading to a so-called \textit{differential game} -- with the response to his choices depends on other agents' states and actions through a \textit{mean-field} effect.
 
 
-The general setup of a MFG has every agent penalize a running cost on the control and mean-field interaction, as well as a terminal cost on the its final position and the overall final distribution of agents (see \cite{LASRY2006679}). The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on games with agent dynamics $dX_t = \alpha_tdt + dW_t$ where the running cost of the control $\alpha$ is a quadratic function.
+The general setup of a MFG has every agent penalize a running cost on the control and mean-field interaction, as well as a terminal cost on the its final position and the overall final distribution of agents (see \cite{LASRY2006679}). The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on games with agent dynamics $dX_t = \alpha_tdt + dW_t$ and quadratic running cost on the control $\alpha$
+\[
+	\int_0^T L(\alpha_t) = \int_0^T\frac{\alpha_t^2}{2}
+\]
+
+
 
 The (Nash) equilibrium agent-control dynamics can be summarized by the system of coupled nonlinear partial differential equations:
 \begin{subequations}\label{eq:VariationalQuadraticMFG}
 \begin{align}\label{eq:VarQuadMFGHJB}
-	-\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t] \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
+	-\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t], \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
 	\partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
 	\rho_0 &\text{ given} \\
 	u(T, \cdot) &= g[\rho_T]
@@ -114,7 +129,7 @@ The first idea of \cite{benamou:hal-01295299} is to cast the MFG partial differe
 \end{equation}
 where $\Pi(\mu,\nu) =\{ \gamma \in \calP_2(\Omega\times\Omega) : P^1_{\#}\gamma = \mu,\; P^2_{\#}\gamma = \nu \}$ is the set of transport plants from $\mu$ to $\nu$.
 Then, $\mathcal{C}([0, T], \WW_2(\Omega))$ is the Wiener space of continuous $\WW_2$-valued trajectories.
-\textcite{benamou:hal-01295299} show that the MFG be reformulated to the following variational problem:
+\textcite{benamou:hal-01295299} show that the MFG can be reformulated to the following variational problem:
 \begin{equation}\label{eq:EulerianProblem}
 \begin{aligned}
    	&\inf_{\rho,v} J(\rho, v) =
@@ -133,40 +148,49 @@ This point of view \cite{benamou:hal-01295299} is called \textit{Eulerian}: we m
 
 \subsection{Lagrangian formulation}
 
-\subsubsection{Wiener space and measure}
-
+\paragraph{Wiener space and measure.} 
 This new point of view involves a change in function spaces. We denote $\calX = \calC([0,T], \Omega)$ the Wiener space of (agents') trajectories $[0,T] \rightarrow\Omega$. Following \cites{benamou:hal-01295299,benamou2015lagrangian}, we equip it with the Wiener measure (the law of a Wiener process with any starting point $x$)
 \[
    	R = \int_\Omega \delta_{x + W}\,dx
 \]
-  	where $W$ is a standard Wiener process in $\RR^d$. It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}.
+where $W$ is a standard Wiener process in $\RR^d$. It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}.
   	
-  	Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]} \in \calC([0,T], \calP(\Omega))$, with
+Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]}$ in $\calP(\Omega)$ with
 \[
    	Q_t = e_{t\#}Q \in \calP(\Omega)
 \]
 the push-forward of $Q$ by the evaluation map $e_t\colon \xi\in\calX\longmapsto \xi(t)$. This naturally defines an injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
 
-\paragraph{Marginals of the Wiener measure $\boldsymbol{R}$.} In particular, $R_t$ is the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$, and
+\paragraph{Marginals of the Wiener measure.} In particular, $R_t$ is the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$, and we have that the final marginals have densities:
 \begin{equation}\label{eq:2MarginWienerMeasure}
-   	R_{s,t}(dx,dy) = G_{t-s}(x-y)\,dx\,dy.
+   	R_{s,t}(x,y) = P_{t-s}(y-x).
 \end{equation}
-Where $G_t$ is the standard heat kernel
-\[
-	G_t(u) =
+where $P_t$ is the standard $d$-dimensional heat kernel:
+\begin{equation}
+	P_t(u) =
 	\frac{1}{(2\pi t)^{d/2}} \exp\left(-\frac{|u|^2}{2t}\right)
+\end{equation}
+The $N$-marginals are given by
+\begin{equation}
+	R_{t_1,\ldots,t_N}(x_1,\ldots,x_n) = 
+	\prod_{i=1}^{N-1}
+	P_{h}(x_{i+1}-x_i)
+\end{equation}
+
+\textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into a Lagrangian optimization problem over the set of Borel probability measures. This new problem is also solved in \cite{benamou:hal-01295299} using a finite element method.
+
+\paragraph{Integration} Partial integration with respect to the 2-marginal measure $R_{0,h}$ is actually convolution with respect to the heat kernel $P_h$:
+\[
+	\int_\Omega u(x) R_{0,h}(x,y)\,dx =
+	\int_\Omega u(x) P_h(y-x)\,dx =
+	(u * P_h)(y)
 \]
+The effect of integration against the $N$-marginal can then be deduced by induction.
 
-\textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into a Lagrangian optimization problem over the set of Borel probability measures. This new problem is also solved in \cite{benamou:hal-01295299} using a finite element method, which is computationally expensive.
+\subsection{Entropic Lagrangian}
 
-
-
-
-\subsubsection{Entropic Lagrangian}
-
-Instead, \textcite{benamou2018entropy} propose using an entropy minimization approach to allow for a more computationally efficient method adapted from the Sinkhorn algorithm introduced by \textcite{cuturi2013sinkhorn}.
-
-This method, just like the Sinkhorn for OT between histograms (discrete measures), introduces some sort of entropic regularization \cite{benamou2018entropy}, but this time on the measure over the trajectory space $\calX$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{benamou:hal-01295299,benamou2015lagrangian}.
+Instead of using finite element methods, \textcite{benamou2018entropy} propose using an entropy minimization approach to allow for a more computationally efficient method adapted from the Sinkhorn algorithm introduced by \textcite{cuturi2013sinkhorn}.
+This method introduces entropic regularization in the problem, but this time on the measure over the trajectory space $\calX$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{benamou:hal-01295299,benamou2015lagrangian}.
 
 The entropic Lagrangian variational problem is
 \begin{equation}\label{eq:EntropyLagrangianProblem}
@@ -180,21 +204,21 @@ Intuitively, this is the same as fixing the marginals $\rho_t$, finding the opti
 
 \subsection{Viscosity and the deterministic limit}
 
-We change the MFG problem to one following the agent-level dynamics $dX_t = \alpha_t dt + {\color{Brown}\sigma} dW_t$ with a diffusion coefficient $\sigma$. The MFG equilibrium equations become
+We change the MFG problem to one following the agent dynamics $dX_t = \alpha_t dt + {\redfont\sigma} dW_t$ with a diffusion coefficient $\redfont\sigma$. The MFG equilibrium equations become
 \begin{equation}
 \begin{aligned}
-	-\partial_t u - \frac{\color{Brown}\sigma^2}{2}\Delta u + \frac12 |\nabla u|^2 &= f[\rho_t] \\
-	\partial_t \rho - \frac{\color{Brown}\sigma^2}{2}\Delta\rho - \divg(\rho\nabla u) &= 0
+	-\partial_t u - \frac{\redfont\sigma^2}{2}\Delta u + \frac12 |\nabla u|^2 &= f[\rho_t] \\
+	\partial_t \rho - \frac{\redfont\sigma^2}{2}\Delta\rho - \divg(\rho\nabla u) &= 0
 \end{aligned}	
 \end{equation}
-This can be used to approximate first-order MFGs by setting a low viscosity parameter $\sigma$.
-Denoting $\color{Brown}\epsilon = \sigma^2$, the entropic variational problem \eqref{eq:EntropyLagrangianProblem} becomes
-\[
+This can be used to approximate first-order MFGs by setting a low viscosity parameter $\redfont\sigma$.
+Denoting $\redfont\epsilon = \sigma^2$, the entropic variational problem \eqref{eq:EntropyLagrangianProblem} becomes
+\begin{equation}
 	\inf_{Q\in\calP(\calX)}
-	{\color{Brown}\epsilon} H(Q|{\color{Brown}R_{\epsilon}}) + \int_0^T F(Q_t)\,dt + G(Q_T)\quad
+	{\redfont\epsilon} H(Q|{\redfont R_{\epsilon}}) + \int_0^T F(Q_t)\,dt + G(Q_T)\quad
 	\suchthat\ Q_0 = \rho_0
-\]
-where $\color{Brown}R_{\epsilon}$ is the Wiener measure associated with Wiener processes scaled by $\color{Brown}\epsilon$.
+\end{equation}
+where $\redfont R_{\epsilon}$ is the Wiener measure associated with Wiener processes scaled by $\redfont\epsilon$.
 
 \section{Numerical algorithm}
 
