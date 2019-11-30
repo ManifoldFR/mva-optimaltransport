@@ -128,43 +128,75 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 
 \subsection{Spatial discretization}\label{sec:PartialDiscret}
 
-For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points $x_i$ in $\RR^d$ of size $M = N_1\times\cdots\times N_d$, and we naturally exchange convolution with the heat kernel for discrete convolution.  This will be the main computational issue.
+For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points $x_i$ in $\RR^d$ of size $M = N_1\times\cdots\times N_d$.
 
+Integration with respect to the marginalized Wiener measure $R^N$ is the main computational bottleneck. 
+
+Denote $\bfR \in \RR^{M^N}$ the discretized measure $R^N$. Integration of multiple vectors $u_0,\ldots,u_N\in\RR^M$ with respect to $\bfR$ is the following tensor contraction
+\[
+	\bfR[u_0,\ldots,u_N] =
+	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N u_{i_k}
+\]
+A naive implementation would compute the sum in exponential time $\calO(NM^N)$.
+
+\begin{prop}[Efficient convolution]
+The tensor $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. This allows us to write the partial convolution $\calI_k$ (leaving the $k$th component out) as
+\begin{equation}
+{\bluefont
+	\calI_k = \bfR[(a_j)_{j\neq k}] =
+	\mathbf{A}_{k-1} \odot \mathbf{B}_{k+1}
+}
+\end{equation}
+where $\mathbf{A}_{k} = \bfP^T (a_k \odot \bfP^T(a_{k-1} \odot \cdots))$ and $\mathbf{B}_k = \bfP (a_k \odot \bfP (a_{k+1}\odot \cdots))$.
+\end{prop}
+
+This leads to \cref{alg:EfficientIntegral}:
+\begin{algorithm}
+\caption{Efficient computation of the integral $\calI_k$.}\label{alg:EfficientIntegral}
+\KwIn{Heat kernel $\bfP$, index $k$, vectors $(a_j)_{j\neq k}$}
+$\mathbf{A} \leftarrow 1$\;
+\For{$i=0$ to $k-1$}{
+	$\mathbf{A} \leftarrow \bfP^T(a_i \odot\mathbf{A})$\;
+}
+$\mathbf{B} \leftarrow 1$\;
+\For{$i=N$ down to $k+1$}{
+	$\mathbf{B} \leftarrow \bfP(a_i \odot\mathbf{B})$\;
+}
+\Return{$\mathbf{A}\odot\mathbf{B}$}\;
+\end{algorithm}
+
+The computational complexity of this algorithm depends on how efficient the convolution $\mathbf{P}u$ can be made -- the naive matrix product performs in time $\calO(M^3)$ and the overall algorithm is $\calO(NM^3)$ which can still be very high. For separable kernels, decomposing the convolution can net considerable speedups \parencite[p.~74]{peyr2018computational}.
 
 \paragraph{Projections.}
-In the general case, the KL-projections in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly.
+In the general case, the KL-proximal operators in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly:
 
 
-\begin{prop}
+\begin{prop}\label{prop:KLproxExamples}
 	The KL-projection on the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
 	\begin{equation}
-	\prox^{\KL}_C(\beta) = \min(\beta,\overline{m})
+	\proj^{\KL}_\calC(\beta) = \min(\beta,\overline{m})
 	\end{equation}
 	where the minimum is taken element-wise.
 	
 	The KL-projection on the obstacle constraint is
 	\begin{equation}
-	\prox^{\KL}(\beta) = \beta \mathds{1}_{\Omega\backslash\mathscr{O}}
+	\proj^{\KL}_\calC (\beta) = \beta \mathds{1}_{\Omega\backslash\mathscr{O}}
 	\end{equation}
 	
-	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the proximal operator reads
+	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the projector is
 	\begin{equation}
-	\prox^{\KL}_F(\beta) = \min(\beta, \bar{m})\mathds{1}_{\Omega\backslash\mathscr{O}}.
+	\proj^{\KL}_\calC(\beta) = \min(\beta, \bar{m})\mathds{1}_{\Omega\backslash\mathscr{O}}.
+	\end{equation}
+	
+	Under a system of constraints with hard congestion and obstacles, a linear penalty function $G(\alpha) = \langle\Psi, \alpha\rangle$ has proximal operator
+	\begin{equation}
+	\prox^{\KL}_{G,\calC}(\beta) =
+	\min(\beta\odot e^{-\Psi/\epsilon},\bar{m}) \mathds{1}_{\Omega\backslash\mathscr{O}}
 	\end{equation}
 \end{prop}
 
 
-\paragraph{Efficient convolution.} Denote $\bfR \in \RR^{M^N}$ the discretized measure $R^N$. Summation of multiple vectors $u_0,\ldots,u_N$ with respect to $\bfR$ is the following tensor contraction
-\[
-	\bfR[u_0,\ldots,u_N] =
-	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N u_{i_k}
-\]
-The multi-marginal kernel $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. This allows us to write the partial convolution $\calI_k$ (leaving the $k$th component out) as
-\begin{equation}
-	\calI_k = \bfR[(u_j)_{j\neq k}] =
-	\mathbf{A}_{k-1} \odot \mathbf{B}_{k+1}
-\end{equation}
-where $\mathbf{A}_{k} = \bfP^T (a_k \odot \bfP^T(a_{k-1} \odot \cdots))$ and $\mathbf{B}_k = \bfP (a_k \odot \bfP (a_{k+1}\odot \cdots))$.
+
 
 
 

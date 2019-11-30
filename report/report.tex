@@ -5,14 +5,21 @@
 \usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{amssymb}
-\usepackage{hyperref,cleveref}
 \usepackage{dsfont,mathrsfs}
+\usepackage[dvipsnames]{xcolor}
+
 \usepackage[
-linesnumbered,lined,boxed
+	ruled,vlined,
+	linesnumbered
 ]{algorithm2e}
 
-\usepackage[dvipsnames]{xcolor}
-\usepackage{amsthm}
+\usepackage[thmmarks,amsmath]{ntheorem}
+\usepackage[
+	ntheorem=true,framemethod=TikZ
+]{mdframed}
+
+\usepackage{hyperref,cleveref}
+
 
 \usepackage{graphicx}
 
@@ -42,6 +49,7 @@ citecolor=Green
 \newcommand{\NN}{\mathbb{N}}
 \newcommand{\BB}{\mathbb{B}}
 \newcommand{\WW}{\mathbb{W}}
+\newcommand{\EE}{\mathbb{E}}
 
 \newcommand{\bfR}{\mathbf{R}}
 \newcommand{\bfP}{\mathbf{P}}
@@ -51,6 +59,7 @@ citecolor=Green
 \newcommand{\calI}{\mathcal{I}}
 \newcommand{\calK}{\mathcal{K}}
 \newcommand{\calP}{\mathcal{P}}
+\newcommand{\calO}{\mathcal{O}}
 \newcommand{\calT}{\mathcal{T}}
 \newcommand{\calS}{\mathcal{S}}
 \newcommand{\calM}{\mathcal{M}}
@@ -69,66 +78,83 @@ citecolor=Green
 \DeclareMathOperator*{\argmax}{argmax}
 
 \DeclareMathOperator{\KL}{KL}
+\DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\prox}{prox}
 
 \numberwithin{equation}{section}
 
 %% Colors %%
 
-\newcommand{\bluefont}{\color{RoyalBlue}}
-\newcommand{\redfont}{\color{Red}}
 
+\colorlet{lightblue}{NavyBlue!8}
+\colorlet{midblue}{RoyalBlue!72}
+\colorlet{midgreen}{OliveGreen!65}
+\colorlet{darkred}{Red!90!Black}
+
+\newcommand{\redfont}{\color{darkred}}
+\newcommand{\bluefont}{\color{RoyalBlue}}
 
 %% THEOREM ENVS %%
 
-\newtheorem{prop}{Proposition}
+%\newtheorem{prop}{Proposition}
+\newmdtheoremenv[
+	linecolor=midblue,
+	backgroundcolor=lightblue,
+]{prop}{Proposition}
+
 \newtheorem{thmalgo}{Algorithm}
 \theoremstyle{definition}
 \newtheorem{remark}{Remark}
 
-\author{Wilson \textsc{Jallet}}
+\author{
+	Wilson Jallet\\
+	\textit{École polytechnique, ENS Paris-Saclay}
+}
 \title{
-	{\Large\itshape Computational Optimal Transport}\\
-	{\Large Regularized Optimal Transport methods for solving variational Mean-Field Games}}
+	{\Large\itshape Computational Optimal Transport -- Final Project}\\
+	{\Large A regularized Optimal Transport formulation for variational Mean-Field Games}}
 
 \begin{document}
 \maketitle
 
 
+\begin{abstract}
+	Mean-field games (MFG) are strategic decision-making problems designed to study Nash equilibria in complex large-scale, many-agent differential games using partial differential equations. This gives access to the convenient theoretical tools of differential equations. In recent years, work has been done on finding variational formulations for MFGs so they can be written as convex optimization problems and eventually be connected to the theory of optimal transport \cite{benamou:hal-01295299,benamou2015lagrangian}. In particular, a recent paper by \textcite{benamou2018entropy} explores a class of games that can be written as minimal-entropy problems over a Wiener space, with an efficient numerical algorithm in tow.
+\end{abstract}
+
+
+
 \section{Quadratic Mean-field games}
 
-A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. In the continuous-time setting explored in \cite{LASRY2006679}, each agent evolves according to some dynamics -- leading to a so-called \textit{differential game} -- with the response to his choices depends on other agents' states and actions through a \textit{mean-field} effect.
+A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. Each agent's actions get a feedback response that depends on other agents' states and actions through a \textit{mean-field} effect. In the time-evolving setting, every agent obeys to some dynamics and his actions are modeled by a dynamic control problem \cite{LASRY2006679}.
 
-
-The general setup of a MFG has every agent penalize a running cost on the control and mean-field interaction, as well as a terminal cost on the its final position and the overall final distribution of agents (see \cite{LASRY2006679}). The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on games with agent dynamics $dX_t = \alpha_tdt + dW_t$ and quadratic running cost on the control $\alpha$
+The general setup of a dynamic MFG has every agent penalize a running cost on the control, aspects of the trajectory (such as the mean-field interaction with other agents), as well as a terminal cost on the its final position and the overall final distribution of agents \cite{LASRY2006679}.
+The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on games with stochastic agent dynamics $dX_t = \alpha_tdt + dW_t$ with control $\alpha$ and a quadratic running cost on the control $L(\alpha_t) = \frac{|\alpha_t|^2}{2}$. Mean-field interaction penalties are given by $L^2$-valued functionals $f$ and $g$. A representative agent's objective is to minimize the overall penalty
 \[
-	\int_0^T L(\alpha_t) = \int_0^T\frac{\alpha_t^2}{2}
+	\inf_{\alpha} \EE\left[
+	\int_0^T \frac{1}{2}|\alpha_t|^2 + f(X_t, \rho_t) \,dt
+	+ g(X_T, \rho_T)
+	\right]
 \]
+subject to $dX_t = \alpha_tdt + dW_t$, and where $\rho_t$ is the overall distribution of agents at $t$.
 
 
-
-The (Nash) equilibrium agent-control dynamics can be summarized by the system of coupled nonlinear partial differential equations:
+The Nash equilibrium agent-control dynamics can be summarized by the partial differential equations:
 \begin{subequations}\label{eq:VariationalQuadraticMFG}
 \begin{align}\label{eq:VarQuadMFGHJB}
-	-\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f[\rho_t], \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
+	-\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f(x, \rho_t), \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
 	\partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
 	\rho_0 &\text{ given} \\
-	u(T, \cdot) &= g[\rho_T]
+	u(T, \cdot) &= g(x, \rho_T)
 \end{align}
 \end{subequations}
-where and $t\mapsto \rho_t$ is a trajectory in the space of measures, and $\Omega$ a subset of the Euclidean space $\RR^d$. The applications $f[\mu]$ and $g[\mu]$ are supposed to be derivatives of some real-valued functionals $F$ and $G$ on the space of measures. For instance, if $G(\mu) = \int_\Omega \Psi\,d\mu(x)$ then its derivative is $g[\mu](x) = \Psi(x)$.
+where $t\mapsto \rho_t$ is a trajectory in the space of measures, and $\Omega$ a subset of the Euclidean space $\RR^d$. The applications $\mu\mapsto f(\cdot, \mu)$ and $\mu\mapsto g(\cdot, \mu)$ are supposed to be derivatives of some real-valued functionals $F$ and $G$ on the space of measures. For instance, in the case considered by \textcite{benamou:hal-01295299}, the running cost functional is a function of space $f(x, \mu) = \Psi(x)$, which has antiderivative $F(\mu) = \int_\Omega \Psi(x) \,d\mu(x)$ in the space of measures.
 
 \Cref{eq:VarQuadMFGHJB,eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (Fokker-Planck) partial differential equations. They can be solved in some cases using finite-difference methods (see \textcite{achdou:hal-01456506}).
 
 \section{Variational formulations for the quadratic MFG}
 
-The first idea of \cite{benamou:hal-01295299} is to cast the MFG partial differential equations to a variational problem over an appropriate function space. Denote $\WW_2(\Omega) = (\calP_2(\Omega), \calW_2)$ the set of probability measures with finite second moment, equipped with the Wasserstein metric
-\begin{equation}\label{eq:Wasserstein2Metric}
-   	\calW_2(\mu,\nu)^2 = \inf_{\gamma\in\Pi(\mu,\nu)}
-   	\int {|x-y|}^2 d\gamma
-\end{equation}
-where $\Pi(\mu,\nu) =\{ \gamma \in \calP_2(\Omega\times\Omega) : P^1_{\#}\gamma = \mu,\; P^2_{\#}\gamma = \nu \}$ is the set of transport plants from $\mu$ to $\nu$.
-Then, $\mathcal{C}([0, T], \WW_2(\Omega))$ is the Wiener space of continuous $\WW_2$-valued trajectories.
+The first idea of \cite{benamou:hal-01295299} is to cast the MFG partial differential equations to a variational problem over an appropriate function space. Denote $\WW_2(\Omega) = (\calP_2(\Omega), \calW_2)$ the set of probability measures with finite second moment, equipped with the Wasserstein metric $\calW_2$. Then, $\mathcal{C}([0, T], \WW_2(\Omega))$ is the Wiener space of continuous $\WW_2$-valued trajectories.
 \textcite{benamou:hal-01295299} show that the MFG can be reformulated to the following variational problem:
 \begin{equation}\label{eq:EulerianProblem}
 \begin{aligned}
@@ -141,7 +167,7 @@ Then, $\mathcal{C}([0, T], \WW_2(\Omega))$ is the Wiener space of continuous $\W
 \end{equation}
 where $\rho = (\rho_t)_{t\in[0,T]}\in \calC([0,T], \WW_2(\Omega))$ is a trajectory in $\WW_2$ and $v$ is a sufficiently regular function on $[0,T] \times \Omega$, most likely lying in a Sobolev space -- see \cite{benamou:hal-01295299} for further discussion on regularity.
 
-This point of view \cite{benamou:hal-01295299} is called \textit{Eulerian}: we minimize over both the velocity $v$ and the time-trajectory of the agents' density $\rho$. This can be solved by introducing Lagrange multipliers, exploiting duality, and using a finite element method, as shown in \cite{benamou:hal-01295299}.
+This point of view is called \textit{Eulerian}: we minimize over both the velocity $v$ and the trajectory of the agents' density $\rho$. This can be solved by introducing Lagrange multipliers, exploiting duality, and using a finite element method, as shown in \cite{benamou:hal-01295299}.
 
 \textcite{benamou:hal-01295299,benamou2018entropy} also introduce a \textit{Lagrangian} point of view, which allows to use tools from optimal transport theory: the variational problem is changed to optimize over the space of probability distributions on the space of agent trajectories.
 
@@ -161,7 +187,7 @@ Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]
 \]
 the push-forward of $Q$ by the evaluation map $e_t\colon \xi\in\calX\longmapsto \xi(t)$. This naturally defines an injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
 
-\paragraph{Marginals of the Wiener measure.} In particular, $R_t$ is the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$, and we have that the final marginals have densities:
+\paragraph{Marginals of the Wiener measure.} The single marginals $R_t$ are the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$. The 2-marginals have densities on $\Omega\times \Omega$:
 \begin{equation}\label{eq:2MarginWienerMeasure}
    	R_{s,t}(x,y) = P_{t-s}(y-x).
 \end{equation}
@@ -177,15 +203,17 @@ The $N$-marginals are given by
 	P_{h}(x_{i+1}-x_i)
 \end{equation}
 
-\textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into a Lagrangian optimization problem over the set of Borel probability measures. This new problem is also solved in \cite{benamou:hal-01295299} using a finite element method.
-
-\paragraph{Integration} Partial integration with respect to the 2-marginal measure $R_{0,h}$ is actually convolution with respect to the heat kernel $P_h$:
+\paragraph{Integration.} Partial integration with respect to the 2-marginal measure $R_{0,h}$ is actually convolution with respect to the heat kernel $P_h$:
 \[
 	\int_\Omega u(x) R_{0,h}(x,y)\,dx =
 	\int_\Omega u(x) P_h(y-x)\,dx =
 	(u * P_h)(y)
 \]
 The effect of integration against the $N$-marginal can then be deduced by induction.
+
+
+\textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into an optimization problem over the set of Borel probability measures. This new problem is solved in \cite{benamou:hal-01295299} using the Augmented Lagrangian algorithm (discretization is done using finite elements).
+
 
 \subsection{Entropic Lagrangian}
 
