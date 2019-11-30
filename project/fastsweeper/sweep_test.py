@@ -82,6 +82,8 @@ im_ = plot_measure(C)
 plt.colorbar(im_)
 plt.axis('off');
 
+from IPython import display
+
 
 for k in range(40):
     #plot_domain(domain_img)

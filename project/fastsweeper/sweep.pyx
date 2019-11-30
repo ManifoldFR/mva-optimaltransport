@@ -5,8 +5,10 @@ the Eikonal equation.
 cimport cython
 import numpy as np
 cimport numpy as np
-from numpy import ndarray
+from numpy cimport ndarray
+
 from libc.math cimport sqrt, fmin
+from libc.stdio cimport printf
 
 ctypedef np.npy_bool bool_t
 
@@ -26,7 +28,7 @@ cpdef _solve_algebraic_update(double a, double b, double rhs):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef void update_grid(double[:, ::1] f, double h, double[:, ::1] C,
+cpdef void update_grid(double[:, :] f, double h, double[:, :] C,
                        bool_t reverse_x, bool_t reverse_y):
     r"""
     Args
@@ -40,12 +42,16 @@ cpdef void update_grid(double[:, ::1] f, double h, double[:, ::1] C,
     cdef Py_ssize_t n = C.shape[0]
     cdef Py_ssize_t m = C.shape[1]
 
+    #print('n:', n, end='\t')
+    #print('m:', m, flush=True)
+
     cdef Py_ssize_t i, j
     cdef double uxmin, uymin, ubar
 
     x_range = range(n)
     if reverse_x:
         x_range = reversed(x_range)
+    
     y_range = range(m)
     if reverse_y:
         y_range = reversed(y_range)
@@ -73,7 +79,8 @@ cpdef void update_grid(double[:, ::1] f, double h, double[:, ::1] C,
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef void init_grid(double[:,::1] C, bool_t[:,::] target_mask, double init_value=1e5):
+cpdef void init_grid(double[:,:] C, const bool_t[:,:] target_mask,
+                     double init_value=1e5):
     r"""
     Args
         C (double[:,:]): grid to initialize
@@ -82,8 +89,8 @@ cpdef void init_grid(double[:,::1] C, bool_t[:,::] target_mask, double init_valu
 
     """
     cdef Py_ssize_t n = C.shape[0]
-    cdef Py_ssize_t m = C.shape[0]
-
+    cdef Py_ssize_t m = C.shape[1]
+    
     for i in range(n):
         for j in range(m):
             # In the domain, set target set
@@ -95,8 +102,8 @@ cpdef void init_grid(double[:,::1] C, bool_t[:,::] target_mask, double init_valu
             
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cpdef void fast_sweep(double[:, ::1] f, double h, bool_t[:,::] target_mask,
-                      int iters, double[:,::1] C, init_value=10):
+cpdef void fast_sweep(double[:,:] f, double h, const bool_t[:,:] target_mask,
+                      int iters, double[:,:] C, init_value=10):
     r"""
     Args
         f (double[:,:]): speed field
@@ -107,11 +114,11 @@ cpdef void fast_sweep(double[:, ::1] f, double h, bool_t[:,::] target_mask,
 
     """
     init_grid(C, target_mask, init_value)
-
     cdef int k
-
+    
     for k in range(iters):
         update_grid(f, h, C, False, False)
         update_grid(f, h, C, True, False)
         update_grid(f, h, C, True, True)
         update_grid(f, h, C, False, True)
+    
