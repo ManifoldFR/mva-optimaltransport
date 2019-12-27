@@ -30,7 +30,7 @@ Expanding the inf-within-inf leads to the following convex optimization problem:
 \begin{equation}
 \begin{aligned}
 &\inf_{\gamma \in \calP(\Omega^{N+1})}
-\KL(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
+H(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
 &\suchthat\ \mu_k = P^k_\#\gamma
 \end{aligned}
 \end{equation}
@@ -47,7 +47,7 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 
 \textcite{benamou2018entropy} introduce a Sinkhorn-like iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations inspired by \cite{chizat2016scaling}.
 
-\begin{thmalgo}\label{algo:Algo1}
+\begin{prop}\label{algo:Algo1}
 	Denote for $k=0,\ldots,N$ and $(a_j)_{j\neq k}$
 	\[
 	\calI_k((a_j)_{j\neq k})(\tilde{x}_k) = 
@@ -61,15 +61,15 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 	\calI_k^{(n)} = \calI_k\left(\left(a^{(n+1)}_j\right)_{j<k},
 	\left(a^{(n)}_j\right)_{j>k}\right)
 	\]
-	for the $n$th iterate where we denote $a_j = \exp(-u_j)$.
+	for the $n$th iterate where we denote $a_j = \exp(u_j)$.
 	
 	Then we compute the dual potentials iteratively:
 	\begin{equation}
 	\begin{dcases}
-	u_0^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{-v(x_0)}) \calI_0^{(n)} \,dx_0 - \imath_{\rho_0}^*(v) \\
-	u_k^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1- e^{-v(x_k)}) \calI_k^{(n)} \,dx_k - hF^*(v) ,
+	u_0^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{v(x_0)}) \calI_0^{(n)} \,dx_0 - \imath_{\rho_0}^*(-v) \\
+	u_k^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1- e^{v(x_k)}) \calI_k^{(n)} \,dx_k - hF^*(-v) ,
 	\quad 1\leq k < N  \\
-	u_N^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{-v(x_N)}) \calI_N^{(n)} \,dx_N - G^*(v)
+	u_N^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{v(x_N)}) \calI_N^{(n)} \,dx_N - G^*(-v)
 	\end{dcases}
 	\end{equation}
 	until convergence.
@@ -77,17 +77,17 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 	Using duality, we find that the iterates $u_k^{(n)}$ satisfy
 	\begin{equation}
 	{\bluefont
-	a_k^{(n)} = \exp\left(-u^{(n)}_k\right) =
+	a_k^{(n)} = \exp\left(u^{(n)}_k\right) =
 	\frac{
-		\prox_{F_k}^{\KL}(\calI_k^{(n)})
+		\prox_{F_k}^{H}(\calI_k^{(n)})
 	}{\calI_k^{(n)}}}
 	\end{equation}
 	where
 	\[
-		\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z)
+		\prox_F^{H}(z) = \argmin_{s} F(s) + H(s|z)
 	\]
 	is the KL-proximal operator.
-\end{thmalgo}
+\end{prop}
 
 \begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
 	In practice, the convex conjugates of the cost functions are difficult to compute. For some of the examples in the paper, we have closed-form conjugates.
@@ -132,15 +132,15 @@ For full numerical implementation, all measures are replaced by multi-dimensiona
 
 Integration with respect to the marginalized Wiener measure $R^N$ is the main computational bottleneck. 
 
-Denote $\bfR \in \RR^{M^N}$ the discretized measure $R^N$. Integration of multiple vectors $u_0,\ldots,u_N\in\RR^M$ with respect to $\bfR$ is the following tensor contraction
+Denote $\bfR \in \RR^{M^N}$ the discretized measure $R^N$. Integration of multiple vectors $a_0,\ldots,a_N\in\RR^M$ with respect to $\bfR$ is the following tensor contraction
 \[
-	\bfR[u_0,\ldots,u_N] =
-	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N u_{i_k}
+	\bfR[a_0, \ldots, a_N] =
+	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N a_{i_k}
 \]
-A naive implementation would compute the sum in exponential time $\calO(NM^N)$.
+A naive implementation would compute the sum in exponential time $\calO(NM^N)$: this is a well known problem is computational statistics and graphical models, and an efficient way of dealing with it is exploiting the structure of the kernel $\bfR$.
 
 \begin{prop}[Efficient convolution]
-The tensor $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. This allows us to write the partial convolution $\calI_k$ (leaving the $k$th component out) as
+The kernel $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. The partial convolution $\calI_k$ (leaving the $k$th component out) can now be written as
 \begin{equation}
 {\bluefont
 	\calI_k = \bfR[(a_j)_{j\neq k}] =
@@ -150,22 +150,22 @@ The tensor $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1
 where $\mathbf{A}_{k} = \bfP^T (a_k \odot \bfP^T(a_{k-1} \odot \cdots))$ and $\mathbf{B}_k = \bfP (a_k \odot \bfP (a_{k+1}\odot \cdots))$.
 \end{prop}
 
-This leads to \cref{alg:EfficientIntegral}:
-\begin{algorithm}
-\caption{Efficient computation of the integral $\calI_k$.}\label{alg:EfficientIntegral}
-\KwIn{Heat kernel $\bfP$, index $k$, vectors $(a_j)_{j\neq k}$}
-$\mathbf{A} \leftarrow 1$\;
+Due to the structure of the kernel, the marginals $\mu_0,\ldots,\mu_N$ only communicate as in an undirected chain. This leads to the usual message-passing algorithm: see \Cref{algo:EfficientIntegral}.
+\begin{algorithm}[h]
+\caption{Efficient computation of the integral $\calI_k$.}\label{algo:EfficientIntegral}
+\KwIn{Base heat kernel $\bfP$, index $k$, vectors $(a_j)_{j\neq k}$}
+$\mathbf{A} \leftarrow \mathds{1}$\;
 \For{$i=0$ to $k-1$}{
 	$\mathbf{A} \leftarrow \bfP^T(a_i \odot\mathbf{A})$\;
 }
-$\mathbf{B} \leftarrow 1$\;
+$\mathbf{B} \leftarrow \mathds{1}$\;
 \For{$i=N$ down to $k+1$}{
 	$\mathbf{B} \leftarrow \bfP(a_i \odot\mathbf{B})$\;
 }
 \Return{$\mathbf{A}\odot\mathbf{B}$}\;
 \end{algorithm}
 
-The computational complexity of this algorithm depends on how efficient the convolution $\mathbf{P}u$ can be made -- the naive matrix product performs in time $\calO(M^3)$ and the overall algorithm is $\calO(NM^3)$ which can still be very high. For separable kernels, decomposing the convolution can net considerable speedups \parencite[p.~74]{peyr2018computational}.
+The computational complexity of this algorithm depends on how efficiently we can compute the convolution $\mathbf{P}u$. The naive matrix product performs in time $\calO(M^3)$ and the overall algorithm is $\calO(NM^3)$ which can still be very high. For separable kernels, decomposing the convolution can net considerable speedups \parencite[p.~74]{peyr2018computational}.
 
 \paragraph{Projections.}
 In the general case, the KL-proximal operators in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly:
@@ -174,23 +174,23 @@ In the general case, the KL-proximal operators in the Sinkhorn iterations can be
 \begin{prop}\label{prop:KLproxExamples}
 	The KL-projection on the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
 	\begin{equation}
-	\proj^{\KL}_\calC(\beta) = \min(\beta,\overline{m})
+	\proj^{H}_\calC(\beta) = \min(\beta,\overline{m})
 	\end{equation}
 	where the minimum is taken element-wise.
 	
 	The KL-projection on the obstacle constraint is
 	\begin{equation}
-	\proj^{\KL}_\calC (\beta) = \beta \mathds{1}_{\Omega\backslash\mathscr{O}}
+	\proj^{H}_\calC (\beta) = \beta \mathds{1}_{\Omega\backslash\mathscr{O}}
 	\end{equation}
 	
 	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the projector is
 	\begin{equation}
-	\proj^{\KL}_\calC(\beta) = \min(\beta, \bar{m})\mathds{1}_{\Omega\backslash\mathscr{O}}.
+	\proj^{H}_\calC(\beta) = \min(\beta, \bar{m})\mathds{1}_{\Omega\backslash\mathscr{O}}.
 	\end{equation}
 	
 	Under a system of constraints with hard congestion and obstacles, a linear penalty function $G(\alpha) = \langle\Psi, \alpha\rangle$ has proximal operator
 	\begin{equation}
-	\prox^{\KL}_{G,\calC}(\beta) =
+	\prox^{H}_{G,\calC}(\beta) =
 	\min(\beta\odot e^{-\Psi/\epsilon},\bar{m}) \mathds{1}_{\Omega\backslash\mathscr{O}}
 	\end{equation}
 \end{prop}

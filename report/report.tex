@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 
 \usepackage{subfiles}
-\usepackage[a4paper,hmargin=3.2cm]{geometry}
+\usepackage[a4paper,hmargin=2.8cm]{geometry}
 \usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{amssymb}
@@ -13,19 +13,23 @@
 	linesnumbered
 ]{algorithm2e}
 
-\usepackage[thmmarks,amsmath]{ntheorem}
+\usepackage{amsthm}
 \usepackage[
-	ntheorem=true,framemethod=TikZ
+	framemethod=TikZ
 ]{mdframed}
 
 \usepackage{hyperref,cleveref}
-
-
 \usepackage{graphicx}
+\usepackage{enumitem}
+
+\setlist{itemsep=0pt,topsep=0pt}
 
 \usepackage{csquotes}
 \usepackage[
-backend=biber
+	sorting=none,
+	minnames=1,
+	maxcitenames=2,
+	backend=biber
 ]{biblatex}
 
 \addbibresource{../bibliography/references.bib}
@@ -33,8 +37,8 @@ backend=biber
 %% Hyperref %%
 
 \hypersetup{
-colorlinks,
-citecolor=Green
+	colorlinks,
+	citecolor=Green
 }
 
 \crefalias{prop}{proposition}
@@ -50,6 +54,7 @@ citecolor=Green
 \newcommand{\BB}{\mathbb{B}}
 \newcommand{\WW}{\mathbb{W}}
 \newcommand{\EE}{\mathbb{E}}
+\newcommand{\PP}{\mathbb{P}}
 
 \newcommand{\bfR}{\mathbf{R}}
 \newcommand{\bfP}{\mathbf{P}}
@@ -58,6 +63,7 @@ citecolor=Green
 \newcommand{\calC}{\mathcal{C}}
 \newcommand{\calI}{\mathcal{I}}
 \newcommand{\calK}{\mathcal{K}}
+\newcommand{\calL}{\mathcal{L}}
 \newcommand{\calP}{\mathcal{P}}
 \newcommand{\calO}{\mathcal{O}}
 \newcommand{\calT}{\mathcal{T}}
@@ -85,33 +91,42 @@ citecolor=Green
 
 %% Colors %%
 
-
-\colorlet{lightblue}{NavyBlue!8}
-\colorlet{midblue}{RoyalBlue!72}
+\colorlet{lightblue}{RoyalBlue!13!white}
+\colorlet{midblue}{RoyalBlue!70}
 \colorlet{midgreen}{OliveGreen!65}
 \colorlet{darkred}{Red!90!Black}
 
 \newcommand{\redfont}{\color{darkred}}
 \newcommand{\bluefont}{\color{RoyalBlue}}
+\newcommand{\greenfont}{\color{Green!90!black}}
 
 %% THEOREM ENVS %%
+
+\mdfsetup{
+	outerlinewidth=1pt,
+	innertopmargin=0cm,
+}
 
 %\newtheorem{prop}{Proposition}
 \newmdtheoremenv[
 	linecolor=midblue,
-	backgroundcolor=lightblue,
+	backgroundcolor=white,
 ]{prop}{Proposition}
 
-\newtheorem{thmalgo}{Algorithm}
+
 \theoremstyle{definition}
-\newtheorem{remark}{Remark}
+\newmdtheoremenv[
+	hidealllines=true,
+	leftline=true,
+	linecolor=Red!70
+]{remark}{Remark}
 
 \author{
 	Wilson Jallet\\
 	\textit{École polytechnique, ENS Paris-Saclay}
 }
 \title{
-	{\Large\itshape Computational Optimal Transport -- Final Project}\\
+	{\Large\itshape\sffamily Computational Optimal Transport: Final Project}\\
 	{\Large A regularized Optimal Transport formulation for variational Mean-Field Games}}
 
 \begin{document}
@@ -119,134 +134,21 @@ citecolor=Green
 
 
 \begin{abstract}
-	Mean-field games (MFG) are strategic decision-making problems designed to study Nash equilibria in complex large-scale, many-agent differential games using partial differential equations. This gives access to the convenient theoretical tools of differential equations. In recent years, work has been done on finding variational formulations for MFGs so they can be written as convex optimization problems and eventually be connected to the theory of optimal transport \cite{benamou:hal-01295299,benamou2015lagrangian}. In particular, a recent paper by \textcite{benamou2018entropy} explores a class of games that can be written as minimal-entropy problems over a Wiener space, with an efficient numerical algorithm in tow.
+	Mean-field games (MFG) are strategic decision-making problems designed to approximate complex large-scale, many-agent differential games using partial differential equations and study their Nash equilibria. This gives access to the convenient theoretical tools of differential equations. In recent years, work has been done on finding variational formulations for MFGs so they can be written as convex optimization problems and eventually be connected to the theory of optimal transport \cite{benamou:hal-01295299,benamou2015lagrangian}. In particular, a recent paper by \textcite{benamou2018entropy} explores a class of games that can be written as minimal-entropy problems over a Wiener space, with an efficient numerical algorithm in tow.
 \end{abstract}
 
 
 
-\section{Quadratic Mean-field games}
+\section{Quadratic Mean-Field Games}
 
-A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. Each agent's actions get a feedback response that depends on other agents' states and actions through a \textit{mean-field} effect. In the time-evolving setting, every agent obeys to some dynamics and his actions are modeled by a dynamic control problem \cite{LASRY2006679}.
+\subsection{Control problem and Nash equilibrium}
 
-The general setup of a dynamic MFG has every agent penalize a running cost on the control, aspects of the trajectory (such as the mean-field interaction with other agents), as well as a terminal cost on the its final position and the overall final distribution of agents \cite{LASRY2006679}.
-The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on games with stochastic agent dynamics $dX_t = \alpha_tdt + dW_t$ with control $\alpha$ and a quadratic running cost on the control $L(\alpha_t) = \frac{|\alpha_t|^2}{2}$. Mean-field interaction penalties are given by $L^2$-valued functionals $f$ and $g$. A representative agent's objective is to minimize the overall penalty
-\[
-	\inf_{\alpha} \EE\left[
-	\int_0^T \frac{1}{2}|\alpha_t|^2 + f(X_t, \rho_t) \,dt
-	+ g(X_T, \rho_T)
-	\right]
-\]
-subject to $dX_t = \alpha_tdt + dW_t$, and where $\rho_t$ is the overall distribution of agents at $t$.
+\subfile{parts/intro.tex}
 
+\subsection{Variational formulation}
 
-The Nash equilibrium agent-control dynamics can be summarized by the partial differential equations:
-\begin{subequations}\label{eq:VariationalQuadraticMFG}
-\begin{align}\label{eq:VarQuadMFGHJB}
-	-\partial_t u - \frac{1}{2}\Delta u + \frac12|\nabla u|^2 &= f(x, \rho_t), \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
-	\partial_t \rho_t - \frac{1}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
-	\rho_0 &\text{ given} \\
-	u(T, \cdot) &= g(x, \rho_T)
-\end{align}
-\end{subequations}
-where $t\mapsto \rho_t$ is a trajectory in the space of measures, and $\Omega$ a subset of the Euclidean space $\RR^d$. The applications $\mu\mapsto f(\cdot, \mu)$ and $\mu\mapsto g(\cdot, \mu)$ are supposed to be derivatives of some real-valued functionals $F$ and $G$ on the space of measures. For instance, in the case considered by \textcite{benamou:hal-01295299}, the running cost functional is a function of space $f(x, \mu) = \Psi(x)$, which has antiderivative $F(\mu) = \int_\Omega \Psi(x) \,d\mu(x)$ in the space of measures.
+\subfile{parts/variationalformulation.tex}
 
-\Cref{eq:VarQuadMFGHJB,eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (Fokker-Planck) partial differential equations. They can be solved in some cases using finite-difference methods (see \textcite{achdou:hal-01456506}).
-
-\section{Variational formulations for the quadratic MFG}
-
-The first idea of \cite{benamou:hal-01295299} is to cast the MFG partial differential equations to a variational problem over an appropriate function space. Denote $\WW_2(\Omega) = (\calP_2(\Omega), \calW_2)$ the set of probability measures with finite second moment, equipped with the Wasserstein metric $\calW_2$. Then, $\mathcal{C}([0, T], \WW_2(\Omega))$ is the Wiener space of continuous $\WW_2$-valued trajectories.
-\textcite{benamou:hal-01295299} show that the MFG can be reformulated to the following variational problem:
-\begin{equation}\label{eq:EulerianProblem}
-\begin{aligned}
-   	&\inf_{\rho,v} J(\rho, v) =
-   	\frac{1}{2}\int_0^T\int_\Omega |v_t|^2 \,d\rho_t(x)\,dt + \int_0^T F(\rho_t)\,dt + G(\rho_T)
-   	\\
-   	\suchthat\ &\partial_t \rho_t - \frac12\Delta \rho_t + \divg(\rho_t v) = 0 \\
-   	&\rho_0 \in \WW_2(\Omega)	
-\end{aligned}
-\end{equation}
-where $\rho = (\rho_t)_{t\in[0,T]}\in \calC([0,T], \WW_2(\Omega))$ is a trajectory in $\WW_2$ and $v$ is a sufficiently regular function on $[0,T] \times \Omega$, most likely lying in a Sobolev space -- see \cite{benamou:hal-01295299} for further discussion on regularity.
-
-This point of view is called \textit{Eulerian}: we minimize over both the velocity $v$ and the trajectory of the agents' density $\rho$. This can be solved by introducing Lagrange multipliers, exploiting duality, and using a finite element method, as shown in \cite{benamou:hal-01295299}.
-
-\textcite{benamou:hal-01295299,benamou2018entropy} also introduce a \textit{Lagrangian} point of view, which allows to use tools from optimal transport theory: the variational problem is changed to optimize over the space of probability distributions on the space of agent trajectories.
-
-
-\subsection{Lagrangian formulation}
-
-\paragraph{Wiener space and measure.} 
-This new point of view involves a change in function spaces. We denote $\calX = \calC([0,T], \Omega)$ the Wiener space of (agents') trajectories $[0,T] \rightarrow\Omega$. Following \cites{benamou:hal-01295299,benamou2015lagrangian}, we equip it with the Wiener measure (the law of a Wiener process with any starting point $x$)
-\[
-   	R = \int_\Omega \delta_{x + W}\,dx
-\]
-where $W$ is a standard Wiener process in $\RR^d$. It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}.
-  	
-Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]}$ in $\calP(\Omega)$ with
-\[
-   	Q_t = e_{t\#}Q \in \calP(\Omega)
-\]
-the push-forward of $Q$ by the evaluation map $e_t\colon \xi\in\calX\longmapsto \xi(t)$. This naturally defines an injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
-
-\paragraph{Marginals of the Wiener measure.} The single marginals $R_t$ are the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$. The 2-marginals have densities on $\Omega\times \Omega$:
-\begin{equation}\label{eq:2MarginWienerMeasure}
-   	R_{s,t}(x,y) = P_{t-s}(y-x).
-\end{equation}
-where $P_t$ is the standard $d$-dimensional heat kernel:
-\begin{equation}
-	P_t(u) =
-	\frac{1}{(2\pi t)^{d/2}} \exp\left(-\frac{|u|^2}{2t}\right)
-\end{equation}
-The $N$-marginals are given by
-\begin{equation}
-	R_{t_1,\ldots,t_N}(x_1,\ldots,x_n) = 
-	\prod_{i=1}^{N-1}
-	P_{h}(x_{i+1}-x_i)
-\end{equation}
-
-\paragraph{Integration.} Partial integration with respect to the 2-marginal measure $R_{0,h}$ is actually convolution with respect to the heat kernel $P_h$:
-\[
-	\int_\Omega u(x) R_{0,h}(x,y)\,dx =
-	\int_\Omega u(x) P_h(y-x)\,dx =
-	(u * P_h)(y)
-\]
-The effect of integration against the $N$-marginal can then be deduced by induction.
-
-
-\textcite{benamou:hal-01295299,benamou2015lagrangian} then re-cast the Eulerian variational game \eqref{eq:EulerianProblem} into an optimization problem over the set of Borel probability measures. This new problem is solved in \cite{benamou:hal-01295299} using the Augmented Lagrangian algorithm (discretization is done using finite elements).
-
-
-\subsection{Entropic Lagrangian}
-
-Instead of using finite element methods, \textcite{benamou2018entropy} propose using an entropy minimization approach to allow for a more computationally efficient method adapted from the Sinkhorn algorithm introduced by \textcite{cuturi2013sinkhorn}.
-This method introduces entropic regularization in the problem, but this time on the measure over the trajectory space $\calX$. The resulting numerical algorithm becomes a regularization of the Lagrangian from \cite{benamou:hal-01295299,benamou2015lagrangian}.
-
-The entropic Lagrangian variational problem is
-\begin{equation}\label{eq:EntropyLagrangianProblem}
-\inf_{Q\in\calP(\calX)}
-H(Q|R) + \int_0^T F(Q_t)\,dt + G(Q_T) \quad
-\suchthat\ Q_0 = \rho_0
-\end{equation}
-
-Intuitively, this is the same as fixing the marginals $\rho_t$, finding the optimal bridge $Q$ between them that has minimal entropy relative to the Wiener measure, and then optimizing over the $\rho_t$.
-
-
-\subsection{Viscosity and the deterministic limit}
-
-We change the MFG problem to one following the agent dynamics $dX_t = \alpha_t dt + {\redfont\sigma} dW_t$ with a diffusion coefficient $\redfont\sigma$. The MFG equilibrium equations become
-\begin{equation}
-\begin{aligned}
-	-\partial_t u - \frac{\redfont\sigma^2}{2}\Delta u + \frac12 |\nabla u|^2 &= f[\rho_t] \\
-	\partial_t \rho - \frac{\redfont\sigma^2}{2}\Delta\rho - \divg(\rho\nabla u) &= 0
-\end{aligned}	
-\end{equation}
-This can be used to approximate first-order MFGs by setting a low viscosity parameter $\redfont\sigma$.
-Denoting $\redfont\epsilon = \sigma^2$, the entropic variational problem \eqref{eq:EntropyLagrangianProblem} becomes
-\begin{equation}
-	\inf_{Q\in\calP(\calX)}
-	{\redfont\epsilon} H(Q|{\redfont R_{\epsilon}}) + \int_0^T F(Q_t)\,dt + G(Q_T)\quad
-	\suchthat\ Q_0 = \rho_0
-\end{equation}
-where $\redfont R_{\epsilon}$ is the Wiener measure associated with Wiener processes scaled by $\redfont\epsilon$.
 
 \section{Numerical algorithm}
 

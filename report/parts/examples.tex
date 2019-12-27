@@ -20,7 +20,7 @@ The discretized MFG problem with viscosity parameter $\epsilon = \sigma^2$ can b
 	\suchthat\ & \gamma\mathds{1} = \rho_0, \quad \gamma^T\mathds{1} \odot \mathds{1}_{\mathscr{O}} = 0
 	\end{aligned}
 \end{equation}
-In this two-marginal case, the matrix $\bfR = \bfP$ is the discretization of the heat kernel $P_h$ as discussed in \cref{sec:PartialDiscret}:
+In this two-marginal case, the Gibbs kernel $\bfR = \bfP$ is the discretization of the heat kernel as discussed in \cref{sec:PartialDiscret}:
 \[
 	\bfR_{i,j} = P_{h\epsilon}(x_j - x_i)
 \]
@@ -33,7 +33,7 @@ In this problem we want to observe the optimal target distribution $\rho^*_1 = (
 \begin{prop}\label{thm:2MargFuzzyTarget}
 Problem \eqref{eq:2MargFuzzyObstacleObj} can be solved in closed form: the Lagrange multiplier $u_0^*$ for the marginal law constraint satisfies
 \[
-	a_0^* = e^{-u_0^*/\epsilon}  = \frac{\rho_0}{\bfR a^*_1}
+	a_0^* = e^{u_0^*/\epsilon}  = \frac{\rho_0}{\bfR a^*_1}
 \]
 where $a^*_1 = e^{-\Psi/\epsilon}\odot\mathds{1}_{\Omega\backslash\mathscr{O}}$, and the optimal coupling is
 \[
@@ -45,7 +45,7 @@ It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$. 
 \]
 \end{prop}
  
-\paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the discrete MFG \eqref{eq:2MargFuzzyObstacleObj}. \cref{fig:2MargFuzzyTransportObstacles} provides a representation of both . We also checked the results when removing the constraints on the obstacles (essentially setting $\mathscr{O}$), and when lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}).
+\paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the discrete MFG \eqref{eq:2MargFuzzyObstacleObj}. \cref{fig:2MargFuzzyTransportObstacles} provides a representation of both. We also checked the results when removing the constraints on the obstacles (essentially setting $\mathscr{O}$), and when lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}).
 
 Since the kernel $\bfR$ on the domain is separable, the convolution can be sped up.
 
@@ -78,7 +78,7 @@ Since the kernel $\bfR$ on the domain is separable, the convolution can be sped 
 
 
 
-\begin{remark}[A ``smarter" (more realistic) potential for crowd dynamics]\label{rem:SmartPotential} The results shown \cref{fig:2MargFuzzyTransportMarginals} are satisfactory for the given potential $\Psi$ -- as expected the agents try to stay near the low-potential regions. However, for modeling of crowd dynamics they would be deeply nonphysical because the potential is inadequate. In a room evacuation scenario, for instance, agents would seek to minimize the time-to-exit: the literature shows this leads to the Eikonal equation, a kind of Hamilton-Jacobi PDE. We computed the adequate potential shown \cref{fig:CrowdShortedPathPotential} using the Fast Sweeping method \parencite{Zhao2004AFS}, as well as the discrete MFG \cref{fig:2MargEikonalGame}.
+\begin{remark}[A more realistic potential for crowd dynamics]\label{rem:SmartPotential} The results shown \cref{fig:2MargFuzzyTransportMarginals} are satisfactory for the given potential $\Psi$ -- as expected the agents try to stay near the low-potential regions. However, for modeling of crowd dynamics they would be deeply nonphysical because the potential is inadequate. In a room evacuation scenario, for instance, agents would seek to minimize the time-to-exit: the literature shows this leads to the Eikonal equation $|\nabla u(x)| = 1/f(x)$, a kind of Hamilton-Jacobi PDE. We computed the adequate potential shown \cref{fig:CrowdShortedPathPotential} using the Fast Sweeping method \parencite{Zhao2004AFS}. The solution to the associated discrete 2-step MFG is shown \cref{fig:2MargEikonalGame}.
 \end{remark}
 
 
@@ -94,7 +94,7 @@ Since the kernel $\bfR$ on the domain is separable, the convolution can be sped 
 		\includegraphics[width=\linewidth]{../project/images/eikonal_transport_lowvisc.png}
 		\caption{Optimal terminal distribution $\rho^*_1$ of the discrete MFG with the potential from \cref{fig:CrowdShortedPathPotential}.}\label{fig:2MargEikonalGame}
 	\end{subfigure}
-	\caption{Setup and solution for the discrete MFG using the time-to-exit potential discussed in \cref{rmk:SmartPotential}.}
+	\caption{Setup and solution for the discrete MFG using the time-to-exit potential discussed in \cref{rem:SmartPotential}.}
 \end{figure}
 
 
@@ -120,7 +120,7 @@ The Lagrange multipliers $u_i^*$ at the optimum satisfy the fixed-point conditio
 	\frac{\bar{m}}{\bfR[a_0^*, a_1^*, \,\cdot\,]}, e^{-\Psi/\epsilon}
 	\right)
 \end{align*}
-where $a_i^* = \exp(-u_i^*)$ are supported on $\Omega\backslash\mathscr{O}$ and we denote $\bfR[\cdot,\cdot,\cdot]$ the appropriate tensor contraction by $\bfR$.
+where $a_i^* = \exp(u_i^*)$ are supported on $\Omega\backslash\mathscr{O}$ and we denote $\bfR[\cdot,\cdot,\cdot]$ the appropriate tensor contraction by $\bfR$.
 
 The marginals are obtained as
 \[
@@ -156,7 +156,7 @@ The issue of computational efficiency is more pronounced here than before due to
 	\end{aligned}
 \]
 
-\paragraph{Numerical experiment.} An example on the domain $\Omega$ from before is given \cref{fig:3MargTransport}.
+\paragraph{Numerical experiment.} An example on the domain $\Omega$ from before is given \cref{fig:3MargTransport}. The result is not qualitatively satisfying, because the intermediate step looks as if some of the mass ``teleported" through the boundary instead of actually being constrained.
 
 \begin{figure}
 	\centering

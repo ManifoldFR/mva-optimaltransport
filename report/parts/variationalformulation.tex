@@ -1,0 +1,109 @@
+\documentclass[../report.tex]{subfiles}
+
+\begin{document}
+
+The idea of \cite{benamou:hal-01295299} is to cast the MFG partial differential equations to a variational problem over an appropriate function space. Denote $\WW_2(\Omega) = (\calP_2(\Omega), \calW_2)$ the set of probability measures with finite second moment, equipped with the Wasserstein metric $\calW_2$.
+\autocite{benamou:hal-01295299} show that the MFG can be reformulated to the following variational problem:
+\begin{equation}\label{eq:EulerianProblem}
+\begin{aligned}
+&\inf_{\rho,v} J(\rho, v) =
+\frac{1}{2}\int_0^T\int_\Omega |v_t|^2 \,d\rho_t(x)\,dt + \int_0^T F(\rho_t)\,dt + G(\rho_T)
+\\
+\suchthat\ &\partial_t \rho_t - \frac{\sigma^2}{2}\Delta \rho_t + \divg(\rho_t v) = 0
+\end{aligned}
+\end{equation}
+where $(\rho_t)_{t\in[0,T]}\in \calC([0,T], \WW_2(\Omega))$ is a trajectory in $\WW_2$ and $v$ is a function on $[0,T] \times \Omega$ most likely lying in a Sobolev space.
+
+This point of view is called \textit{Eulerian}: we minimize over both the velocity $v$ and the agent density trajectory $(\rho_t)$. This nonconvex problem is solved by \textcite{benamou:hal-01295299,benamou2015lagrangian} using an augmented saddle-point approximation.
+
+
+\subsection{Lagrangian formulation}
+
+\textcite{benamou:hal-01295299,benamou2018entropy} introduce a \textit{Lagrangian} point of view: the variational problem is changed to a \textbf{weighted energy minimization problem on the space of trajectories}. The energy of all paths is aggregated using a measure on the space of trajectories, and we seek the optimal measure: this allows the use of transportation theory to formulate the problem.
+
+\subsubsection{The Wiener space of trajectories}
+ 
+This new point of view involves a change in function spaces. We denote $\calX = \calC([0,T], \Omega)$ the Wiener space of agents' trajectories $[0,T] \to\Omega$. The space $\calX$ is equipped with the \textbf{\bluefont Wiener measure}.
+In the unitary viscosity case ($\sigma = 1$), the Wiener measure $R$ on $\calX$ is defined as follows: the measure of a set of paths $\mathcal{A} \subset \calX$ is
+\[
+	R(\mathcal{A}) = \int_{\RR^d}\PP(x+W \in \mathcal{A})\, dx
+\]
+where $W$ is the standard Brownian motion (starting at $0$).
+In the non-unitary viscosity case ($\sigma \neq 1$), we introduce $\greenfont\epsilon = \sigma^2$ and the Wiener measure $\greenfont R_\epsilon$ associated with Wiener processes scaled by $\sigma$.
+It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}. \cites{benamou:hal-01295299,benamou2015lagrangian} This construction is needed because it allows us to talk about notions and \textbf{density} and \textbf{entropy of a probability measure on $\calX$} with respect to the Wiener measure, which we will use to define the energy to minimize.
+
+\begin{remark}
+	This was not necessary in the framework of \cite{benamou:hal-01295299} because the energy $\mathcal{E}(Q)$ used in that article was the expected kinetic energy of a trajectory $\xi$ distributed under $Q\in\calP(\calX)$.
+\end{remark}
+
+
+
+Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]}$ in $\calP(\Omega)$ with
+\[
+Q_t = e_{t\#}Q \in \calP(\Omega)
+\]
+the push-forward of $Q$ by the evaluation map $e_t\colon x\in\calX\longmapsto x(t)$. This defines a natural injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$ from the probability measures on trajectory space to the trajectory space of probabilities on $\Omega$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
+
+\paragraph{Marginals of the Wiener measure.} \textcite{benamou2018entropy} provide the following results on the Wiener measure when $\Omega = \RR^d$.
+\begin{itemize}
+	\item The single marginals $R_t$ are the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$.
+	\item The 2-marginals have densities on $\RR^d \times \RR^d$:
+	\begin{equation}\label{eq:2MarginWienerMeasure}
+		R_{s,t}(x,y) = P_{t-s}(y-x).
+	\end{equation}
+	where $P_t$ is the standard $d$-dimensional heat kernel:
+	\begin{equation}\label{eq:StandardDHeatKernel}
+		P_t(u) =
+		\frac{1}{(2\pi t)^{d/2}} \exp\left(
+		-\frac{|u|^2}{2t}
+		\right)
+	\end{equation}
+	\item The $N$-marginals are given by
+	\begin{equation}
+		R_{t_1,\ldots,t_N}(x_1,\ldots,x_n) = 
+		\prod_{i=1}^{N-1}
+		P_{h}(x_{i+1}-x_i)
+	\end{equation}
+\end{itemize}
+The last property is especially \textbf{important} for computational reasons, as we will see later.
+
+\begin{remark}[Heat kernel]
+	As \textcite[p.~5]{benamou2018entropy} remark, the heat kernel \eqref{eq:StandardDHeatKernel} is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the generator of the standard Brownian motion $W$.
+\end{remark}
+
+
+\paragraph{Integration.} Partial integration with respect to the 2-marginal measure $R_{0,h}$ is actually convolution with respect to the heat kernel $P_h$:
+\[
+	\int_\Omega u(x) R_{0,h}(x,y)\,dx =
+	\int_\Omega u(x) P_h(y-x)\,dx =
+	(u * P_h)(y)
+\]
+The effect of integration against the $N$-marginal can then be deduced by induction.
+
+
+\subsubsection{Energy objective}
+
+Instead of using finite element methods to solve for a kinetic objective as in \cite{benamou:hal-01295299}, \textcite{benamou2018entropy} propose introducing an entropic objective to allow for a more computationally efficient numerical method adapted from the Sinkhorn algorithm introduced by \textcite{cuturi2013sinkhorn}.
+
+This method introduces entropic regularization in the problem. As shown in the initial paper \cite{benamou2018entropy}, the resulting variational problem and associated numerical scheme become regularizations of the problem from \cite{benamou:hal-01295299,benamou2015lagrangian}.
+More precisely, the energy to minimize is the entropy with respect to the Wiener measure:
+\begin{equation}
+	\mathcal{E}(Q) = {\greenfont \epsilon} H(Q | {\greenfont R_\epsilon}) =
+	\begin{cases}
+	\epsilon \int_\calX \log(dQ/dR_\epsilon)\, dQ
+	& \mbox{if } Q \ll R_\epsilon  \\
+	+\infty & \mbox{otherwise}
+	\end{cases}
+\end{equation}
+
+The associated Lagrangian variational problem is
+\begin{equation}\label{eq:EntropyLagrangianProblem}
+	\inf_{Q\in\calP(\calX)}
+	{\greenfont\epsilon} H(Q|{\greenfont R_{\epsilon}}) + \int_0^T F(Q_t)\,dt + G(Q_T)\quad
+	\suchthat\ Q_0 = \rho_0
+\end{equation}
+
+Intuitively, this is the same as fixing the marginals $\rho_t$, finding the entropy-optimal bridge $Q^*$ between them that has minimal entropy relative to the Wiener measure, and then optimizing over the $\rho_t$.
+
+
+\end{document}
