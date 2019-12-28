@@ -1,23 +1,20 @@
-"""
-Cython implementation of the Fast Sweeping algorithm for solving
-the Eikonal equation.
-"""
+"""Cython implementation of the Fast Sweeping algorithm for solving
+the Eikonal equation."""
 cimport cython
 import numpy as np
 cimport numpy as np
 from numpy cimport ndarray
 
 from libc.math cimport sqrt, fmin
-from libc.stdio cimport printf
 
 ctypedef np.npy_bool bool_t
 
-cpdef _solve_algebraic_update(double a, double b, double rhs):
-    r"""
-    Solve the algebraic equation
+cdef double _solve_algebraic_update(double a, double b, double rhs):
+    r"""Solve the algebraic equation
+
     .. math:: [(x - a)^{+} + (x - b)^{+}]^2 = rhs^2
 
-    Args
+    Args:
         rhs: root of rhs (f[i,j] * h)
     """
     if abs(a - b) >= rhs:
@@ -30,13 +27,14 @@ cpdef _solve_algebraic_update(double a, double b, double rhs):
 @cython.boundscheck(False)
 cpdef void update_grid(double[:, :] f, double h, double[:, :] C,
                        bool_t reverse_x, bool_t reverse_y):
-    r"""
-    Args
-        f (array): right-hand side of the HJ eqn
-        h (double): grid step size
-        C (array): grid to update
+    r"""Perform sweeping update.
+    
+    Args:
+        f (array): right-hand side of the Eikonal equation.
+        h (double): grid step size.
+        C (array): grid to update.
 
-    Result
+    Result:
         C must contain the updated array.
     """
     cdef Py_ssize_t n = C.shape[0]
@@ -104,14 +102,14 @@ cpdef void init_grid(double[:,:] C, const bool_t[:,:] target_mask,
 @cython.boundscheck(False)
 cpdef void fast_sweep(double[:,:] f, double h, const bool_t[:,:] target_mask,
                       int iters, double[:,:] C, init_value=10):
-    r"""
-    Args
-        f (double[:,:]): speed field
-        h (double): grid size step
-        target_mask (bool_t[:,:]): target set
-        iters (int): number of iterates
-        C (double[:,:]): grid to initialize
-
+    r"""Fast-sweeping method.
+    
+    Args:
+        f (double[:,:]): speed field.
+        h (double): grid size step.
+        target_mask (bool_t[:,:]): target set.
+        iters (int): number of iterates.
+        C (double[:,:]): grid to initialize.
     """
     init_grid(C, target_mask, init_value)
     cdef int k

@@ -1,3 +1,4 @@
 **/sweep.c
 **/*.so
 **/*.dll
+contraction.c

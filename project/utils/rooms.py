@@ -8,9 +8,7 @@ def room1(xg: ndarray, yg: ndarray):
     mask = (np.abs(yg-0.66) <= 0.06) & (xg <= 0.7)
     # Large block
     mask[:] = mask | ((np.abs(xg - 0.6) < 0.1) & (np.abs(yg - 0.56) < 0.1))
-
     mask[:] = mask | (np.abs(yg - 0.3) <= 0.04) & ((xg <= 0.10) | (xg >= 0.24))
-
     mask[:] = mask | ((xg <= 0.015) | (xg >= 0.985))
     mask[:] = mask | ((yg >= 0.985))
     mask[:] = mask | ((yg <= 0.015) & ((xg <= 0.64) | (xg >= 0.8)))
@@ -18,9 +16,7 @@ def room1(xg: ndarray, yg: ndarray):
 
 def room1_bis(xg: ndarray, yg: ndarray):
     mask = (np.abs(yg-0.66) <= 0.06) & (xg <= 0.7)
-
     mask[:] = mask | (np.abs(yg - 0.3) <= 0.04) & ((xg <= 0.10) | (xg >= 0.24))
-
     mask[:] = mask | ((xg <= 0.015) | (xg >= 0.985))
     mask[:] = mask | ((yg >= 0.985))
     mask[:] = mask | ((yg <= 0.015) & ((xg <= 0.64) | (xg >= 0.8)))
