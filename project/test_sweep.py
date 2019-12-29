@@ -11,7 +11,8 @@ from fastsweeper.sweep import init_grid, update_grid, fast_sweep
 
 
 plt.rcParams['figure.figsize'] = (5, 5)
-plt.rcParams['figure.dpi'] = 80
+plt.rcParams['figure.dpi'] = 100
+plt.rcParams['text.usetex'] = True
 
 
 # # Domain setup
@@ -79,10 +80,9 @@ def progressive_grid_update():
 
 dx = 1. / (nx-1)
 
-C = np.empty((nx, nx))
-speed_field = np.ones_like(C)
+speed_field = np.ones((nx, nx))
 speed_field[mask] = 1e3
-fast_sweep(speed_field, dx, exit_mask, 60, C)
+C = fast_sweep(speed_field, dx, exit_mask, 60)
 
 
 C_filtered = np.ma.array(C, mask=mask)

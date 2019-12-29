@@ -1,3 +1,2 @@
-numericaltours/nt_toolbox/data/lena.png filter=lfs diff=lfs merge=lfs -text
-three_way_transport.png filter=lfs diff=lfs merge=lfs -text
-numericaltours/nt_toolbox/data/flowers.png filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.pdf filter=lfs diff=lfs merge=lfs -text

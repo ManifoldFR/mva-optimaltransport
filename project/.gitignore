@@ -1,4 +1,7 @@
-**/sweep.c
 **/*.so
 **/*.dll
+
+# Individual generated C/C++ files to ignore
+**/sweep.c
 contraction.c
+*.html

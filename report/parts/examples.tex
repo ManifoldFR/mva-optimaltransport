@@ -52,7 +52,7 @@ Since the kernel $\bfR$ on the domain is separable, the convolution can be sped 
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.5\linewidth]{../project/images/crowd_potential.png}
+	\includegraphics[width=0.55\linewidth]{../project/images/crowd_potential.png}
 	\caption{Computational domain of the game $\Omega$ with set of obstacles $\mathscr{O}$ (transparent grey), and contour of the potential function $\Psi(x) = d(x, \mathscr A)^\beta$.} \label{fig:CrowdExamplePotential}	
 \end{figure}
 
@@ -84,12 +84,12 @@ Since the kernel $\bfR$ on the domain is separable, the convolution can be sped 
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[t]{.4\linewidth}
+	\begin{subfigure}[b]{.4\linewidth}
 		\centering
 		\includegraphics[width=\linewidth]{../project/images/crowd_eikonal_potential.png}
 		\caption{Domain and potential associated with the fastest path distance.}\label{fig:CrowdShortedPathPotential}
 	\end{subfigure}~
-	\begin{subfigure}[t]{.4\linewidth}
+	\begin{subfigure}[b]{.34\linewidth}
 		\centering
 		\includegraphics[width=\linewidth]{../project/images/eikonal_transport_lowvisc.png}
 		\caption{Optimal terminal distribution $\rho^*_1$ of the discrete MFG with the potential from \cref{fig:CrowdShortedPathPotential}.}\label{fig:2MargEikonalGame}
@@ -160,7 +160,7 @@ The issue of computational efficiency is more pronounced here than before due to
 
 \begin{figure}
 	\centering
-	\includegraphics[width=.8\linewidth]{../project/images/three_marginal_room1.png}
+	\includegraphics[width=.9\linewidth]{../project/images/three_marginal_room1.png}
 	\caption{Three time step discrete MFG.}\label{fig:3MargTransport}
 \end{figure}
 
@@ -168,16 +168,16 @@ The issue of computational efficiency is more pronounced here than before due to
 
 \subsection{Full $N$-marginal case}
 
-The setup is given in \cref{fig:NMarg1DomainPot}.
+The setup is given in \cref{fig:NMarg1DomainPot}. The result of the computation is given \cref{fig:NMarg1Steps}.
 
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[t]{.4\linewidth}
-	\includegraphics[width=\linewidth]{../project/images/multimarg_room2/room2_setup.pdf}	
+	\begin{subfigure}[b]{.4\linewidth}
+	\includegraphics[width=\linewidth]{../project/images/multimarg_room2/room_setup.pdf}
 	\end{subfigure}~
-	\begin{subfigure}[t]{.48\linewidth}
-	\includegraphics[width=\linewidth]{../project/images/multimarg_room2/room2_potential.pdf}
+	\begin{subfigure}[b]{.5\linewidth}
+	\includegraphics[width=\linewidth]{../project/images/multimarg_room2/room_potential.pdf}
 	\end{subfigure}
 	\caption{Domain, objective and associated potential for the multi-marginal problem. The initial distribution $\rho_0$ is in blue, the objective is in red.}\label{fig:NMarg1DomainPot}
 \end{figure}

@@ -1,3 +1,7 @@
+# cython: nonecheck=False
+# cython: boundscheck=False
+# cython: wraparound=False
+# cython: initializedcheck=False
 """Cython implementation of the Fast Sweeping algorithm for solving
 the Eikonal equation."""
 cimport cython
@@ -5,25 +9,24 @@ import numpy as np
 cimport numpy as np
 from numpy cimport ndarray
 
-from libc.math cimport sqrt, fmin
+from libc.math cimport sqrt, fmin, fabs
 
 ctypedef np.npy_bool bool_t
 
-cdef double _solve_algebraic_update(double a, double b, double rhs):
+cdef double _solve_algebraic_update(double a, double b, double rhs) nogil:
     r"""Solve the algebraic equation
 
     .. math:: [(x - a)^{+} + (x - b)^{+}]^2 = rhs^2
 
     Args:
-        rhs: root of rhs (f[i,j] * h)
+        rhs: Root of the right-hand side `f[i,j] * h`.
     """
-    if abs(a - b) >= rhs:
+    if fabs(a - b) >= rhs:
         return fmin(a, b) + rhs
     else:
         return 0.5 * (a + b + sqrt(2 * rhs * rhs - (a - b) * (a - b)))
 
 
-@cython.wraparound(False)
 @cython.boundscheck(False)
 cpdef void update_grid(double[:, :] f, double h, double[:, :] C,
                        bool_t reverse_x, bool_t reverse_y):
@@ -40,23 +43,30 @@ cpdef void update_grid(double[:, :] f, double h, double[:, :] C,
     cdef Py_ssize_t n = C.shape[0]
     cdef Py_ssize_t m = C.shape[1]
 
-    #print('n:', n, end='\t')
-    #print('m:', m, flush=True)
-
     cdef Py_ssize_t i, j
     cdef double uxmin, uymin, ubar
 
-    x_range = range(n)
+    cdef int Imin, Jmin, Imax, Jmax, Istep, Jstep
     if reverse_x:
-        x_range = reversed(x_range)
-    
-    y_range = range(m)
+        Imin = n-1
+        Imax = -1
+        Istep = -1
+    else:
+        Imin = 0
+        Imax = n
+        Istep = 1
+
     if reverse_y:
-        y_range = reversed(y_range)
+        Jmin = m-1
+        Jmax = -1
+        Jstep = -1
+    else:
+        Jmin = 0
+        Jmax = m
+        Jstep = 1
 
-    for i in x_range:
-
-        for j in y_range:
+    for i in range(Imin, Imax, Istep):
+        for j in range(Jmin, Jmax, Jstep):
             if i == 0:
                 uxmin = C[i+1,j]
             elif i == n-1:
@@ -75,10 +85,9 @@ cpdef void update_grid(double[:, :] f, double h, double[:, :] C,
                 uxmin, uymin, h*f[i,j])
             C[i,j] = fmin(ubar, C[i,j])
 
-@cython.wraparound(False)
 @cython.boundscheck(False)
 cpdef void init_grid(double[:,:] C, const bool_t[:,:] target_mask,
-                     double init_value=1e5):
+                     double init_value=1e5) nogil:
     r"""
     Args
         C (double[:,:]): grid to initialize
@@ -97,11 +106,11 @@ cpdef void init_grid(double[:,:] C, const bool_t[:,:] target_mask,
                 C[i, j] = 0.
             else:
                 C[i, j] = init_value
-            
-@cython.wraparound(False)
+
 @cython.boundscheck(False)
-cpdef void fast_sweep(double[:,:] f, double h, const bool_t[:,:] target_mask,
-                      int iters, double[:,:] C, init_value=10):
+cpdef ndarray[double,ndim=2] fast_sweep(
+    double[:,:] f, const double h, const bool_t[:,:] target_mask,
+    const int iters, double init_value=10.0):
     r"""Fast-sweeping method.
     
     Args:
@@ -109,14 +118,22 @@ cpdef void fast_sweep(double[:,:] f, double h, const bool_t[:,:] target_mask,
         h (double): grid size step.
         target_mask (bool_t[:,:]): target set.
         iters (int): number of iterates.
-        C (double[:,:]): grid to initialize.
+    
+    Returns:
+        The array of geodesic distances to the mask
+        under the velocity f.
     """
-    init_grid(C, target_mask, init_value)
+    cdef int ny, nx
+    ny = f.shape[0]
+    nx = f.shape[1]
+    cdef ndarray[double, ndim=2] C_owned = np.ones((ny, nx))
+    cdef double[:,::1] C_view = C_owned
+    init_grid(C_view, target_mask, init_value)
     cdef int k
     
     for k in range(iters):
-        update_grid(f, h, C, False, False)
-        update_grid(f, h, C, True, False)
-        update_grid(f, h, C, True, True)
-        update_grid(f, h, C, False, True)
-    
+        update_grid(f, h, C_view, False, False)
+        update_grid(f, h, C_view, True, False)
+        update_grid(f, h, C_view, True, True)
+        update_grid(f, h, C_view, False, True)
+    return C_owned
