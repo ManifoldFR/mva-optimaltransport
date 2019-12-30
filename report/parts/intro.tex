@@ -10,11 +10,10 @@ The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on gam
 dX_t = \alpha_tdt + \sigma dW_t
 \end{equation}
 with viscosity $\sigma$ and control $\alpha$ and a quadratic running cost on the control $L(\alpha_t) = |\alpha_t|^2/2$. Mean-field interaction penalties are given by $L^2$-valued functionals $f$ and $g$. A representative agent's objective is to minimize the overall penalty
-\begin{equation}
-\inf_{\alpha} J(\alpha) = \EE\left[
-\int_0^T \frac{1}{2}|\alpha_t|^2 + f(X_t, \rho_t) \,dt
-+ g(X_T, \rho_T)
-\right]
+\begin{equation}\label{eq:ControlObjective}
+	\inf_{\alpha} J(\alpha) = \EE\left[
+	\int_0^T \frac{1}{2}|\alpha_t|^2 + f(X_t, \rho_t) \,dt + g(X_T, \rho_T)
+	\right]
 \end{equation}
 subject to \cref{eq:AgentDynamics}, and where $\rho_t$ is the overall distribution of agents at time $t$. Following the usual dynamic programming framework, \textcite{LASRY2006679} consider \textbf{closed-loop feedback form} or \textit{Markov} controls
 \begin{equation}

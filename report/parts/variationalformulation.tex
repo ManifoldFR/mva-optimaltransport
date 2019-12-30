@@ -30,21 +30,16 @@ In the unitary viscosity case ($\sigma = 1$), the Wiener measure $R$ on $\calX$ 
 \]
 where $W$ is the standard Brownian motion (starting at $0$).
 In the non-unitary viscosity case ($\sigma \neq 1$), we introduce $\greenfont\epsilon = \sigma^2$ and the Wiener measure $\greenfont R_\epsilon$ associated with Wiener processes scaled by $\sigma$.
-It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}. \cites{benamou:hal-01295299,benamou2015lagrangian} This construction is needed because it allows us to talk about notions and \textbf{density} and \textbf{entropy of a probability measure on $\calX$} with respect to the Wiener measure, which we will use to define the energy to minimize.
-
-\begin{remark}
-	This was not necessary in the framework of \cite{benamou:hal-01295299} because the energy $\mathcal{E}(Q)$ used in that article was the expected kinetic energy of a trajectory $\xi$ distributed under $Q\in\calP(\calX)$.
-\end{remark}
-
+It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}. \cites{benamou:hal-01295299,benamou2015lagrangian} This construction is needed because it allows us to talk about notions and \textbf{density} and \textbf{entropy of a probability measure on $\calX$} with respect to the Wiener measure, which is used to define the energy to minimize.
 
 
 Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]}$ in $\calP(\Omega)$ with
 \[
 Q_t = e_{t\#}Q \in \calP(\Omega)
 \]
-the push-forward of $Q$ by the evaluation map $e_t\colon x\in\calX\longmapsto x(t)$. This defines a natural injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$ from the probability measures on trajectory space to the trajectory space of probabilities on $\Omega$. We also introduce the more general marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
+the push-forward of $Q$ by the evaluation map $e_t\colon x\in\calX\longmapsto x(t)$. This defines a natural injection $\underline{i} \colon \calP(\calX) \rightarrow \calC([0,T], \calP(\Omega))$ from the probability measures on trajectory space to the trajectory space of probabilities on $\Omega$. We also denote the more general $N$-marginals $Q_{t_1,\ldots,t_n} = (e_{t_1},\ldots, e_{t_n})_\# Q$ for $0\leq t_1 < \cdots < t_N \leq T$.
 
-\paragraph{Marginals of the Wiener measure.} \textcite{benamou2018entropy} provide the following results on the Wiener measure when $\Omega = \RR^d$.
+\paragraph{Marginals of the Wiener measure.} \textcite{benamou2018entropy} provide the following results on the Wiener measure $R$ when $\Omega = \RR^d$.
 \begin{itemize}
 	\item The single marginals $R_t$ are the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$.
 	\item The 2-marginals have densities on $\RR^d \times \RR^d$:
@@ -67,10 +62,10 @@ the push-forward of $Q$ by the evaluation map $e_t\colon x\in\calX\longmapsto x(
 \end{itemize}
 The last property is especially \textbf{important} for computational reasons, as we will see later.
 
-\begin{remark}[Heat kernel]
-	As \textcite[p.~5]{benamou2018entropy} remark, the heat kernel \eqref{eq:StandardDHeatKernel} is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the generator of the standard Brownian motion $W$ on $\RR^d$.
+\begin{remark}[Heat kernel and domain topology]\label{rem:HeatKernelTopology}
+	As \textcite[p.~5]{benamou2018entropy} remark, the heat kernel \eqref{eq:StandardDHeatKernel} is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the infinitesimal generator of the standard Brownian motion $W$ on $\RR^d$.
 	
-	\textbf{Question:} Formula \eqref{eq:2MarginWienerMeasure} still applies when $\Omega$ is a convex open subset of $\RR^d$. What happens when $\Omega$ is not convex, for instance when there's an obstacle?
+	\noindent This leads to the following question: Formula \eqref{eq:2MarginWienerMeasure} still applies when $\Omega$ is a convex open subset of $\RR^d$. What happens when $\Omega$ is not convex, for instance when there's an obstacle?
 \end{remark}
 
 
@@ -80,7 +75,7 @@ The last property is especially \textbf{important} for computational reasons, as
 	\int_\Omega u(x) P_h(y-x)\,dx =
 	(u * P_h)(y)
 \]
-The effect of integration against the $N$-marginal can then be deduced by induction, as we see in \Cref{prop:efficientConvol}.
+The effect of integration against the $N$-marginal can then be deduced by induction, as we will see in \Cref{prop:efficientConvol}.
 
 
 \subsubsection{Energy objective}

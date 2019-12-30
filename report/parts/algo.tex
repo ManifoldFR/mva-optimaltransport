@@ -5,27 +5,24 @@
 \subsection{Time discretization}
 
 Let $N$ be the number of discrete steps for the time discretization of the problem, and $h=T/N$ the time step.
-
-\textcite{benamou2018entropy} propose a discretization of \eqref{eq:EntropyLagrangianProblem} obtained by connecting the marginals through a multimarginal OT problem:
+\textcite{benamou2018entropy} propose a discretization of \eqref{eq:EntropyLagrangianProblem} obtained by connecting the marginals through a multimarginal OT problem minimizing the entropy energy:
 \begin{equation}
 \calS(\mu_0,\ldots,\mu_N) =
 \inf_{\gamma \in \Pi(\mu_0, \ldots, \mu_N)}
 H(\gamma|R^N)
 \end{equation}
-where $t_k = kh$, $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$.
-Then, define
+where $t_k = kh$, $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$, and $\Pi(\mu_0, \ldots, \mu_N)$ is the usual constraint set for transport ($P^k_{\#}\gamma = \mu_k$). The agent objective \cref{eq:ControlObjective}
 \begin{equation}
 \mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
 \end{equation}
 
-Thus, the discretized entropy minimization problem can be written as
-\[
-\inf\left\{
-\calS(\mu_0, \ldots, \mu_N) +
-\mathcal{U}(\mu_0, \ldots, \mu_N)
-: \mu_k \in \calP_2(\Omega),\; \mu_0 = \rho_0
-\right\}.
-\]
+Thus, the overall problem of finding the optimal marginals $\mu_0,\ldots,\mu_N$ is expressed
+\begin{equation}
+	\inf\left\{
+	\calS(\mu_0, \ldots, \mu_N) + \mathcal{U}(\mu_0, \ldots, \mu_N) 
+	: \mu_k \in \calP_2(\Omega),\; \mu_0 = \rho_0
+	\right\}.
+\end{equation}
 Expanding the inf-within-inf leads to the following convex optimization problem:
 \begin{equation}
 \begin{aligned}
@@ -137,9 +134,10 @@ Denote $\bfR \in \RR^{M^N}$ the discretized measure $R^N$. Integration of multip
 	\bfR[a_0, \ldots, a_N] =
 	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N a_{i_k}
 \]
-A naive implementation would compute the sum in exponential time $\calO(NM^N)$: this is a well known problem is computational statistics and graphical models, and an efficient way of dealing with it is exploiting the structure of the kernel $\bfR$.
 
-\begin{prop}[Efficient convolution]\label{prop:efficientConvol}
+\paragraph{Sum-product algorithm.} A naive implementation would compute the sum in exponential time $\calO(NM^N)$: this is a well known problem is computational statistics and graphical models, and an efficient way of dealing with it is exploiting the structure of the kernel $\bfR$. This aspect is not discussed in the paper by \textcite{benamou:hal-01295299}, although it is important. For the sake of completeness and clarity, we introduce the following algebraic result and deduce an appropriate algorithm:
+
+\begin{prop}[Efficient convolution to $\bfR$]\label{prop:efficientConvol}
 The kernel $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. The partial convolution $\calI_k$ (leaving the $k$th component out) can now be written as
 \begin{equation}
 {\bluefont
@@ -149,8 +147,7 @@ The kernel $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1
 \end{equation}
 where $\mathbf{A}_{k} = \bfP^T (a_k \odot \bfP^T(a_{k-1} \odot \cdots))$ and $\mathbf{B}_k = \bfP (a_k \odot \bfP (a_{k+1}\odot \cdots))$.
 \end{prop}
-
-Due to the structure of the kernel, the marginals $\mu_0,\ldots,\mu_N$ only communicate as in an undirected chain. This leads to the usual message-passing algorithm: see \Cref{algo:EfficientIntegral}.
+So we see that due to the kernel structure, the marginals $\mu_0,\ldots,\mu_N$ only communicate as in an undirected chain. This leads to an efficient message-passing \cref{algo:EfficientIntegral}:
 \begin{algorithm}[h]
 \caption{Efficient computation of the integral $\calI_k$.}\label{algo:EfficientIntegral}
 \KwIn{Base heat kernel $\bfP$, index $k$, vectors $(a_j)_{j\neq k}$}
@@ -165,7 +162,7 @@ $\mathbf{B} \leftarrow \mathds{1}$\;
 \Return{$\mathbf{A}\odot\mathbf{B}$}\;
 \end{algorithm}
 
-The computational complexity of this algorithm depends on how efficiently we can compute the convolution $\mathbf{P}u$. The naive matrix product performs in time $\calO(M^3)$ and the overall algorithm is $\calO(NM^3)$ which can still be very high. For separable kernels, decomposing the convolution can net considerable speedups \parencite[p.~74]{peyr2018computational}.
+The computational complexity of this algorithm depends on how efficiently we can compute the convolution $\mathbf{P}u$. The naive matrix product performs in time $\calO(M^3)$, leading to total complexity $\calO(NM^3)$ which can still be very high. For separable heat kernels $\bfP$, such as on a rectangular grid, factorizing $\bfP u$ as two smaller convolutions can net considerable speedups \parencite[p.~74]{peyr2018computational}.
 
 \paragraph{Projections.}
 In the general case, the KL-proximal operators in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly:

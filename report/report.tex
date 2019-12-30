@@ -119,7 +119,6 @@
 	hidealllines=true,
 	leftline=true,
 	linecolor=Red!70,
-	backgroundcolor=Red!3
 ]{remark}{Remark}
 
 %% TITLE, AUTHOR %%
@@ -162,6 +161,12 @@
 \section{Examples}
 
 \subfile{parts/examples.tex}
+
+
+\section{Conclusion}
+
+The variational mean-field game framework and its OT regularization introduced by \textcite{benamou:hal-01295299,benamou2018entropy} provide useful computational approaches: it shows that some MFGs can be approached by entropic transport problems that can then be solved quickly with matrix multiplications (given the proximal operators).
+However the entropy and OT point of view can be limiting: for now it excludes optimal time problems and more general Hamiltonians, and further work has to be done to include them.
 
 
 

@@ -2,16 +2,25 @@
 
 \begin{document}
 
+We start by considering simple examples for crowd motion on a flat 2D grid, going from cases where a closed-form solution can be written to more complex cases where Sinkhorn iterations and computing multi-marginal convolutions become a concern. We look at how the penalty functions and constraints (hard congestion, potential-based penalties) discussed in \textcite{benamou:hal-01295299} work out.
+
+We have provided a full implementation in Python\footnote{\url{https://github.com/ManifoldFR/mva-optimaltransport/tree/master/project}} for computing the examples. Some of the algorithms were written in Cython for increased performance.
+
 
 \subsection{Two-marginal case}
 
-We start with a very simplified approximation of the crowd displacement problem on $\Omega = [0, 1]^2$, with only the first step (with initial agent distribution) and final step decided by the terminal penalty function $G$.
+We start with a very simplified approximation of the crowd displacement problem on $\Omega = [0, 1]^2$, with only the first (initial agent distribution) and final steps decided by the terminal penalty function $G$. Doing this, we follow the suggestions of \textcite{benamou:hal-01295299} for modeling the problem.
 
-We set $G$ to be the obstacle constraint  related to a subset $\mathscr{O}$ of $\Omega$ as well as a potential $\Psi(x) = d(x, \mathscr A)^{\beta}$ for some $\beta > 0$, related to the distance to a target subset $\mathscr{A}$ (see \cref{fig:CrowdExamplePotential}):
+\begin{remark}
+	\Cref{rem:HeatKernelTopology} addressed the issue of $\Omega$ containing holes and obstacles, and the standard heat kernel $\bfP$ being inadequate in that case, because the appropriate Wiener measure on the space of trajectories $\calX$ changes. \textcite{benamou:hal-01295299} circumvent this by imposing the hard constraints on the subset of obstacles $\mathscr{O}$ mentioned in \cref{rem:ConvexConj} and keeping $\Omega$ a rectangular domain.
+\end{remark}
+
+We set the final penalty $G$ to be the obstacle constraint on the set $\mathscr{O}\subset\Omega$ and a potential $\Psi(x) = d(x, \mathscr A)^{\beta}, \beta > 0$, related to the distance to a target set $\mathscr{A}$ (see \cref{fig:CrowdExamplePotential}):
 \[
 	G(\mu) = \int_\Omega \Psi\,d\mu + \imath_{0}(\mu\mathds{1}_{\mathscr O})
 \]
 Thus, the agents engage in a one-round mean-field game where they are only concerned with moving to regions with lower potential $\Psi$ -- as close as possible to $\mathscr{A}$ -- whilst obeying physical constraints related to the obstacles.
+
 
 The discretized MFG problem with viscosity parameter $\epsilon = \sigma^2$ can be written as the following transport problem:
 \begin{equation}\label{eq:2MargFuzzyObstacleObj}
@@ -45,30 +54,27 @@ It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$. 
 \]
 \end{prop}
  
-\paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the discrete MFG \eqref{eq:2MargFuzzyObstacleObj}. \cref{fig:2MargFuzzyTransportObstacles} provides a representation of both. We also checked the results when removing the constraints on the obstacles (essentially setting $\mathscr{O}$), and when lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}).
+\paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the discrete MFG \eqref{eq:2MargFuzzyObstacleObj}. \cref{fig:2MargFuzzyTransportObstacles} provides a representation of both. We also checked the results when removing the constraints on the obstacles (essentially setting $\mathscr{O}$), and when lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}). The results shown are satisfactory for the given potential $\Psi$: as expected the agents try to stay near the low-potential regions. But the results do not exactly look intuitive if we think of the problem as an exit problem: we see the need for appropriate potentials when modeling.
 
-Since the kernel $\bfR$ on the domain is separable, the convolution can be sped up.
-
-
-\begin{figure}
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=0.55\linewidth]{../project/images/crowd_potential.png}
-	\caption{Computational domain of the game $\Omega$ with set of obstacles $\mathscr{O}$ (transparent grey), and contour of the potential function $\Psi(x) = d(x, \mathscr A)^\beta$.} \label{fig:CrowdExamplePotential}	
+	\includegraphics[width=0.52\linewidth]{../project/images/naive_potential.png}
+	\caption{Game domain $\Omega$ with set of obstacles $\mathscr{O}$ (transparent grey), and contour of the potential function $\Psi(x) = d(x, \mathscr A)^\beta$.} \label{fig:CrowdExamplePotential}	
 \end{figure}
 
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
-	\begin{subfigure}{.82\linewidth}
+	\begin{subfigure}[t]{.70\linewidth}
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_withobstacle.png}
-	\caption{Result of the ``fuzzy" transport problem with enforcement of the obstacle constraints and viscosity parameter $\sigma=1$.}\label{fig:2MargFuzzyTransportObstacles}
+	\caption{Result of the transport problem with enforcement of the obstacle constraints and viscosity parameter $\sigma=1$.}\label{fig:2MargFuzzyTransportObstacles}
 	\end{subfigure}
-	\begin{subfigure}[t]{.4\linewidth}
+	\begin{subfigure}[t]{.34\linewidth}
 	\centering
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_noobstacle.png}
 	\caption{Final distribution $\rho^*_1$ without enforcing the obstacles. The mass of the distribution ``bleeds" through the obstacles. }\label{fig:2MargFuzzyTransportRelaxedObst}
 	\end{subfigure}~
-	\begin{subfigure}[t]{.4\linewidth}
+	\begin{subfigure}[t]{.34\linewidth}
 	\centering
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_lowvisc.png}
 	\caption{Obstacles are constrained as in \cref{fig:2MargFuzzyTransportObstacles}, but with viscosity parameter $\sigma=0.4$.}\label{fig:2MargFuzzyTransportLowVisc}
@@ -76,20 +82,21 @@ Since the kernel $\bfR$ on the domain is separable, the convolution can be sped 
 	\caption{Numerical solution of the two-step MFG problem \eqref{eq:2MargFuzzyObstacleObj}, with a few variations.}\label{fig:2MargFuzzyTransportMarginals}
 \end{figure}
 
-
-
-\begin{remark}[A more realistic potential for crowd dynamics]\label{rem:SmartPotential} The results shown \cref{fig:2MargFuzzyTransportMarginals} are satisfactory for the given potential $\Psi$ -- as expected the agents try to stay near the low-potential regions. However, for modeling of crowd dynamics they would be deeply nonphysical because the potential is inadequate. In a room evacuation scenario, for instance, agents would seek to minimize the time-to-exit: the literature shows this leads to the Eikonal equation $|\nabla u(x)| = 1/f(x)$, a kind of Hamilton-Jacobi PDE. We computed the adequate potential shown \cref{fig:CrowdShortedPathPotential} using the Fast Sweeping method \parencite{Zhao2004AFS}. The solution to the associated discrete 2-step MFG is shown \cref{fig:2MargEikonalGame}.
+\begin{remark}[A more realistic potential for crowd dynamics]\label{rem:SmartPotential}
+In a room evacuation scenario, for instance, agents would seek to minimize the time-to-exit: the literature shows this leads to the Eikonal equation $|\nabla u(x)| = 1/f(x)$, a kind of Hamilton-Jacobi PDE. We computed the adequate potential shown \cref{fig:CrowdShortedPathPotential} using the Fast Sweeping method \parencite{Zhao2004AFS}. The solution to the associated discrete 2-step MFG is shown \cref{fig:2MargEikonalGame}.
 \end{remark}
+
+Of course, another way of modeling the exit problem we're considering would be to change the objective \eqref{eq:ControlObjective} to minimization over a set of stopping times and deduce new MFG equations: this is explored by \textcite{benamou:hal-01295299} who derive a variational formulation for that problem.
 
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[b]{.4\linewidth}
+	\begin{subfigure}[b]{.45\linewidth}
 		\centering
 		\includegraphics[width=\linewidth]{../project/images/crowd_eikonal_potential.png}
 		\caption{Domain and potential associated with the fastest path distance.}\label{fig:CrowdShortedPathPotential}
 	\end{subfigure}~
-	\begin{subfigure}[b]{.34\linewidth}
+	\begin{subfigure}[b]{.4\linewidth}
 		\centering
 		\includegraphics[width=\linewidth]{../project/images/eikonal_transport_lowvisc.png}
 		\caption{Optimal terminal distribution $\rho^*_1$ of the discrete MFG with the potential from \cref{fig:CrowdShortedPathPotential}.}\label{fig:2MargEikonalGame}
@@ -120,9 +127,8 @@ The Lagrange multipliers $u_i^*$ at the optimum satisfy the fixed-point conditio
 	\frac{\bar{m}}{\bfR[a_0^*, a_1^*, \,\cdot\,]}, e^{-\Psi/\epsilon}
 	\right)
 \end{align*}
-where $a_i^* = \exp(u_i^*)$ are supported on $\Omega\backslash\mathscr{O}$ and we denote $\bfR[\cdot,\cdot,\cdot]$ the appropriate tensor contraction by $\bfR$.
-
-The marginals are obtained as
+where $a_i^* = \exp(u_i^*)$ are supported on $\Omega\backslash\mathscr{O}$ and we denote $\bfR[\cdot,\cdot,\cdot]$ tensor contraction by $\bfR$.
+The marginals are given by
 \[
 \begin{aligned}
 	\rho_1^* &=
@@ -142,9 +148,9 @@ The marginals are obtained as
 
 
 
-The fixed point can then computed using an iterative algorithm à la generalized Sinkhorn, just as in the Algorithm \autoref{algo:Algo1} suggested by \cite{benamou2018entropy}.
+The fixed point can then computed using an iterative algorithm à la generalized Sinkhorn, just as in the algorithm from \Cref{algo:Algo1} suggested by \cite{benamou2018entropy}.
 
-The issue of computational efficiency is more pronounced here than before due to the tensor product and need for multiple iterations until convergence. The bottleneck of computing the tensor contractions has already been expanded upon in \cref{sec:PartialDiscret}. In this simple case, the contractions can be simplified as
+The need for computational efficiency is more pronounced than before due to the tensor contraction in the denominator and need for multiple iterations until convergence. The bottleneck of computing the tensor contractions has already been expanded upon in \cref{sec:PartialDiscret} and led to \Cref{algo:EfficientIntegral}. Here the contractions boil down to
 \[
 	\begin{aligned}
 	&\bfR[\cdot,v,w] = 
@@ -156,9 +162,9 @@ The issue of computational efficiency is more pronounced here than before due to
 	\end{aligned}
 \]
 
-\paragraph{Numerical experiment.} An example on the domain $\Omega$ from before is given \cref{fig:3MargTransport}. The result is not qualitatively satisfying, because the intermediate step looks as if some of the mass ``teleported" through the boundary instead of actually being constrained.
+\paragraph{Numerical experiment.} An example on the domain $\Omega$ from before is given \cref{fig:3MargTransport}. The result is not qualitatively satisfying, because the intermediate step looks as if some of the mass ``bleeds" through the boundary instead of actually being constrained.
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=.9\linewidth]{../project/images/three_marginal_room1.png}
 	\caption{Three time step discrete MFG.}\label{fig:3MargTransport}
@@ -166,26 +172,41 @@ The issue of computational efficiency is more pronounced here than before due to
 
 
 
+
+
 \subsection{Full $N$-marginal case}
 
-The setup is given in \cref{fig:NMarg1DomainPot}. The result of the computation is given \cref{fig:NMarg1Steps}.
+Implementation of the full multimarginal problem is not straightforward. The core effort is computing the denominator of the Sinkhorn iterations from \Cref{algo:Algo1}, which is handled using the sum-product \cref{algo:EfficientIntegral}.
 
 
-\begin{figure}
+\paragraph{First example} The setup is the same as in the prequel. The result is given \cref{fig:NMargEx1Soltn}. The grid size was $M = 81^2$, and the result was obtained with 60 Sinkhorn iterations, which took about 22 seconds on a 2.6GHz Intel Core i7 processor.
+
+\begin{figure}[h]
+	\includegraphics[width=\linewidth]{../project/images/multimarg_room1/multimarg_transport.pdf}
+	\caption{Solution of the multimarginal transport problem for crowd displacement.}\label{fig:NMargEx1Soltn}
+\end{figure}
+
+Once again, the observe the \textit{bleeding} problem: some of the mass decides to clip through the obstacle rather than keep on the path. This is obviously not a physically acceptable solution.
+
+
+\paragraph{Second example} The setup is given in \cref{fig:NMarg2DomainPot}: the new domain is $\Omega = [0,1] \times [0,2]$ and consists of two rooms separated by a long but narrow hallway with a singular choke point. The result of the computation is given \cref{fig:NMarg2Steps}. The constraints and costs are identical as before. The grid size was $M = 51 \times 101$, and the result was obtained with 60 Sinkhorn iterations, which took about 25 seconds on a 2.6GHz Intel Core i7 processor.
+
+
+\begin{figure}[h]
 	\centering
-	\begin{subfigure}[b]{.4\linewidth}
+	\begin{subfigure}[b]{.3\linewidth}
 	\includegraphics[width=\linewidth]{../project/images/multimarg_room2/room_setup.pdf}
 	\end{subfigure}~
-	\begin{subfigure}[b]{.5\linewidth}
+	\begin{subfigure}[b]{.39\linewidth}
 	\includegraphics[width=\linewidth]{../project/images/multimarg_room2/room_potential.pdf}
 	\end{subfigure}
-	\caption{Domain, objective and associated potential for the multi-marginal problem. The initial distribution $\rho_0$ is in blue, the objective is in red.}\label{fig:NMarg1DomainPot}
+	\caption{Domain, initial and target agent distributions, and associated potential $\Psi$ for the multi-marginal problem. The initial distribution $\rho_0$ is in blue, the objective is in red.}\label{fig:NMarg2DomainPot}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\includegraphics[height=\textheight]{../project/images/multimarg_room2/multimarg_transport.pdf}
-	\caption{Numerical solution of the MFG.}\label{fig:NMarg1Steps}
+	\caption{Numerical solution of the MFG for the second example.}\label{fig:NMarg2Steps}
 \end{figure}
 
 

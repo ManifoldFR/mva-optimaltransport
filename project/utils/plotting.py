@@ -12,7 +12,7 @@ def plot_domain(a: ndarray, cax=None, cmap=cm.Greys, extent=extent_,
     if cax is None:
         cax = plt.gca()
     if not 'alpha' in kwargs:
-        kwargs['alpha'] = 0.62
+        kwargs['alpha'] = 0.72
     kwargs['cmap'] = cmap
     kwargs['zorder'] = zorder
     kwargs['interpolation'] = interpolation
