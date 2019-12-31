@@ -2,33 +2,35 @@
 
 \begin{document}
 
-\subsection{Time discretization}
+\textcite{benamou2018entropy} propose a discretization of \eqref{eq:EntropyLagrangianProblem} obtained by connecting the marginals through a multimarginal OT problem.
 
-Let $N$ be the number of discrete steps for the time discretization of the problem, and $h=T/N$ the time step.
-\textcite{benamou2018entropy} propose a discretization of \eqref{eq:EntropyLagrangianProblem} obtained by connecting the marginals through a multimarginal OT problem minimizing the entropy energy:
-\begin{equation}
-\calS(\mu_0,\ldots,\mu_N) =
-\inf_{\gamma \in \Pi(\mu_0, \ldots, \mu_N)}
-H(\gamma|R^N)
-\end{equation}
-where $t_k = kh$, $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$, and $\Pi(\mu_0, \ldots, \mu_N)$ is the usual constraint set for transport ($P^k_{\#}\gamma = \mu_k$). The agent objective \cref{eq:ControlObjective}
-\begin{equation}
-\mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
-\end{equation}
+However, the paper does not go into detail about handling spatial discretization on a finite domain and efficient computation of the marginals: we will clarify these points in the later subsections.
 
-Thus, the overall problem of finding the optimal marginals $\mu_0,\ldots,\mu_N$ is expressed
+
+\subsection{Time discretization: multimarginal Sinkhorn}\label{sec:MMOT}
+
+Let $N$ be the number of discrete steps for the time discretization of the problem and $t_k = kh$ be the discrete times with time step $h=T/N$.
 \begin{equation}
-	\inf\left\{
+	\calS(\mu_0,\ldots,\mu_N) = 
+	\inf_{\gamma \in \Pi(\mu_0, \ldots, \mu_N)} H(\gamma | R^N)
+\end{equation}
+where , $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$, and $\Pi(\mu_0, \ldots, \mu_N)$ is the usual constraint set for transport ($P^k_{\#}\gamma = \mu_k$). The agent objective \cref{eq:ControlObjective} translates to
+\begin{equation}
+	\mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
+\end{equation}
+The overall problem of finding the optimal marginals $\mu_0,\ldots,\mu_N$ is expressed
+\begin{equation}
+	\inf \{
 	\calS(\mu_0, \ldots, \mu_N) + \mathcal{U}(\mu_0, \ldots, \mu_N) 
 	: \mu_k \in \calP_2(\Omega),\; \mu_0 = \rho_0
-	\right\}.
+	\}
 \end{equation}
 Expanding the inf-within-inf leads to the following convex optimization problem:
 \begin{equation}
 \begin{aligned}
 &\inf_{\gamma \in \calP(\Omega^{N+1})}
 H(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
-&\suchthat\ \mu_k = P^k_\#\gamma
+&\suchthat\ \mu_k = P^k_\#\gamma,\quad 0\leq k\leq N
 \end{aligned}
 \end{equation}
 where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$. This is a generalized multimarginal optimal transport problem.
@@ -79,63 +81,30 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 		\prox_{F_k}^{\KL}(\calI_k^{(n)})
 	}{\calI_k^{(n)}}}
 	\end{equation}
-	where
-	\[
-		\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z)
-	\]
-	is the KL-proximal operator.
+	where $\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z)$ is the KL-proximal operator.
 \end{prop}
 
-\begin{remark}[Some convex conjugates]\label{rem:ConvexConj}
-	In practice, the convex conjugates of the cost functions are difficult to compute. For some of the examples in the paper, we have closed-form conjugates.
-	\begin{itemize}
-		\item The conjugate of the convex indicatrix $\imath_{\nu}$ of a measure $\nu$ is given by $\imath_{\nu}^*(u) = \langle u, \nu\rangle$.
-		\item The hard congestion constraint
-		\[
-		C(\rho) = \begin{cases}
-		0&\text{ if }\rho\leq \bar{m} \\
-		+\infty&\text{ otherwise}
-		\end{cases}
-		\]
-		has convex conjugate (on the domain $\rho \geq 0$)
-		\[
-		C^*(u) = \sup_{\rho\leq \bar{m}}{} \langle u, \rho\rangle = \langle u^{+}, \bar{m}\mathds{1}\rangle
-		\]
-		\item Obstacle constraints, given by
-		\[
-		F(\rho) = \int_\Omega V(x)\,d\rho(x) =
-		\begin{cases}
-		0 & \mbox{ if } \rho = 0\text{ on }\mathscr{O} \\
-		+\infty & \mbox{ otherwise}
-		\end{cases}
-		= \imath_{0}(\mathds{1}_{\mathscr{O}}\rho)
-		\]
-		where $V$ is the convex indicatrix of the complement $\Omega\backslash\mathscr{O}$ of the obstacles. Its conjugate is given by
-		\[
-		F^*(u) =
-		\begin{cases}
-		0& \mbox{if } u \leq 0\text{ on } \Omega\backslash\mathscr{O} \\
-		+\infty& \mbox{otherwise}
-		\end{cases}
-		\]
-	\end{itemize}
-\end{remark}
 
+\subsection{Handling finite domains and obstacles}
+
+The theory introduced by the paper has some limitations: for instance it only considers MFGs with domain $\RR^d$. What happens when our domain is some $\Omega \subsetneq \RR^d$, for instance a finite set with holes and obstacles? The standard heat kernel $\bfP$ is inadequate in that case and the appropriate Wiener measure on the space of trajectories $\calX$ changes.
+
+\textcite{benamou:hal-01295299} propose to circumvent the problem by imposing a no-mass constraint $\rho = 0$ on the subset of obstacles $\mathscr{O}$ and keeping $\Omega$ a rectangular domain discretized as a regular Cartesian grid, on which the heat kernel has the advantage of being separable.
+
+As \textcite[p.~5]{benamou2018entropy} remark, the heat kernel \eqref{eq:StandardDHeatKernel} is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the infinitesimal generator of the standard Wiener process on $\RR^d$.
 
 
 \subsection{Spatial discretization}\label{sec:PartialDiscret}
 
-For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points $x_i$ in $\RR^d$ of size $M = N_1\times\cdots\times N_d$.
+For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points $x_i$ in $\RR^d$ of size $M = \prod_k N_k$.
 
-Integration with respect to the marginalized Wiener measure $R^N$ is the main computational bottleneck. 
 
-Denote $\bfR \in \RR^{M^N}$ the discretized measure $R^N$. Integration of multiple vectors $a_0,\ldots,a_N\in\RR^M$ with respect to $\bfR$ is the following tensor contraction
+\paragraph{Sum-product algorithm.} Integration with respect to the Wiener marginal $R^N$ is the main computational bottleneck.
+Denote $\bfR \in \RR^{M^N}$ the discretization of $R^N$: integration of $a_0,\ldots,a_N\in\RR^M$ translates to the following tensor contraction
 \[
 	\bfR[a_0, \ldots, a_N] =
 	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N a_{i_k}
-\]
-
-\paragraph{Sum-product algorithm.} A naive implementation would compute the sum in exponential time $\calO(NM^N)$: this is a well known problem is computational statistics and graphical models, and an efficient way of dealing with it is exploiting the structure of the kernel $\bfR$. This aspect is not discussed in the paper by \textcite{benamou:hal-01295299}, although it is important. For the sake of completeness and clarity, we introduce the following algebraic result and deduce an appropriate algorithm:
+\]A naive implementation would compute the sum in exponential time $\calO(NM^N)$: this is a well known problem is computational statistics and graphical models, and an efficient way of dealing with it is exploiting the structure of the kernel $\bfR$. This aspect is not discussed in the paper by \textcite{benamou:hal-01295299}, although it is important. For the sake of completeness and clarity, we introduce the following algebraic result and deduce an appropriate algorithm:
 
 \begin{prop}[Efficient convolution to $\bfR$]\label{prop:efficientConvol}
 The kernel $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. The partial convolution $\calI_k$ (leaving the $k$th component out) can now be written as
@@ -165,32 +134,7 @@ $\mathbf{B} \leftarrow \mathds{1}$\;
 The computational complexity of this algorithm depends on how efficiently we can compute the convolution $\mathbf{P}u$. The naive matrix product performs in time $\calO(M^3)$, leading to total complexity $\calO(NM^3)$ which can still be very high. For separable heat kernels $\bfP$, such as on a rectangular grid, factorizing $\bfP u$ as two smaller convolutions can net considerable speedups \parencite[p.~74]{peyr2018computational}.
 
 \paragraph{Projections.}
-In the general case, the KL-proximal operators in the Sinkhorn iterations can be solved using the Python library CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}}\textsuperscript{,}\footfullcite{cvxpy}. Some can be computed explicitly:
-
-
-\begin{prop}\label{prop:KLproxExamples}
-	The KL-projection on the hard congestion constraint of a measure $\beta\in\RR^M$ is given by
-	\begin{equation}
-	\proj^{\KL}_\calC(\beta) = \min(\beta,\overline{m})
-	\end{equation}
-	where the minimum is taken element-wise.
-	
-	The KL-projection on the obstacle constraint is
-	\begin{equation}
-	\proj^{\KL}_\calC (\beta) = \beta \mathds{1}_{\Omega\backslash\mathscr{O}}
-	\end{equation}
-	
-	If we also add the obstacle constraint on a set $\mathscr{O}$ of points in the grid, then the projector is
-	\begin{equation}
-	\proj^{\KL}_\calC(\beta) = \min(\beta, \bar{m})\mathds{1}_{\Omega\backslash\mathscr{O}}.
-	\end{equation}
-	
-	Under a system of constraints with hard congestion and obstacles, a linear penalty function $G(\alpha) = \langle\Psi, \alpha\rangle$ has proximal operator
-	\begin{equation}
-	\prox^{\KL}_{G,\calC}(\beta) =
-	\min(\beta\odot e^{-\Psi/\epsilon},\bar{m}) \mathds{1}_{\Omega\backslash\mathscr{O}}
-	\end{equation}
-\end{prop}
+In the general case, the KL-proximal operators in the Sinkhorn iterations can be computed using a convex optimization library such as CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}} \cite{cvxpy}. Some can be computed explicitly, as we will see in the examples \Cref{sec:Examples}.
 
 
 

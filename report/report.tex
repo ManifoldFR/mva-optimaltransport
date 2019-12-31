@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 
 \usepackage{subfiles}
-\usepackage[a4paper,hmargin=2.8cm,vmargin=3.6cm]{geometry}
+\usepackage[a4paper,hmargin=3cm,vmargin=3.8cm]{geometry}
 \usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{amssymb}
@@ -61,6 +61,7 @@
 
 
 \newcommand{\calC}{\mathcal{C}}
+\newcommand{\calE}{\mathcal{E}}
 \newcommand{\calI}{\mathcal{I}}
 \newcommand{\calK}{\mathcal{K}}
 \newcommand{\calL}{\mathcal{L}}
@@ -128,7 +129,7 @@
 	\textit{École polytechnique, ENS Paris-Saclay}
 }
 \title{
-	{\Large\itshape\sffamily Computational Optimal Transport: Final Project}\\
+	{\Large\sffamily Computational Optimal Transport -- Project report}\\
 	{\Large A regularized Optimal Transport formulation for variational Mean-Field Games}}
 
 \begin{document}
@@ -136,12 +137,16 @@
 
 
 \begin{abstract}
-	Mean-field games (MFG) are strategic decision-making problems designed to approximate complex large-scale, many-agent differential games using partial differential equations and study their Nash equilibria. This gives access to the convenient theoretical tools of differential equations. In recent years, work has been done on finding variational formulations for MFGs so they can be written as convex optimization problems and eventually be connected to the theory of optimal transport \cite{benamou:hal-01295299,benamou2015lagrangian}. In particular, a recent paper by \textcite{benamou2018entropy} explores a class of games that can be written as minimal-entropy problems over a Wiener space, with an efficient numerical algorithm in tow.
+	Mean-field games (MFG) are strategic decision-making problems designed to approach complex large-scale, many-agent differential games using partial differential equations and study their Nash equilibria using the convenient theoretical tools of differential equations. In recent years, work has been done on finding variational formulations for MFGs so they can be written as convex optimization problems and eventually be connected to the theory of optimal transport \cite{benamou:hal-01295299,benamou2015lagrangian}.
+	
+	In particular, a paper by \textcite{benamou2018entropy} explores a class of variational MFGs that can be written as penalized minimal-entropy problems over a Wiener space, with an efficient numerical algorithm in tow.
+	
+	In this report, we summarize the general framework of mean-field games, the ideas behind variational formulations for MFG and how they connect to optimal transport. Then, we clarify the algorithms introduced by \cite{benamou2018entropy}, provide a full implementation, analyze numerical results and discuss theoretical and practical limitations of the approach.
 \end{abstract}
 
 
 
-\section{Quadratic Mean-Field Games}
+\section{Variational Mean-Field Games}
 
 \subsection{Control problem and Nash equilibrium}
 
@@ -158,7 +163,7 @@
 
 
 
-\section{Examples}
+\section{Examples}\label{sec:Examples}
 
 \subfile{parts/examples.tex}
 
@@ -166,7 +171,8 @@
 \section{Conclusion}
 
 The variational mean-field game framework and its OT regularization introduced by \textcite{benamou:hal-01295299,benamou2018entropy} provide useful computational approaches: it shows that some MFGs can be approached by entropic transport problems that can then be solved quickly with matrix multiplications (given the proximal operators).
-However the entropy and OT point of view can be limiting: for now it excludes optimal time problems and more general Hamiltonians, and further work has to be done to include them.
+
+However the entropy and OT point of view has some \textbf{limitations}: for now it excludes optimal time problems and more general Hamiltonians, and further work has to be done to include them.
 
 
 

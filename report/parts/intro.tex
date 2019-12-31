@@ -9,28 +9,23 @@ The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on gam
 \begin{equation}\label{eq:AgentDynamics}
 dX_t = \alpha_tdt + \sigma dW_t
 \end{equation}
-with viscosity $\sigma$ and control $\alpha$ and a quadratic running cost on the control $L(\alpha_t) = |\alpha_t|^2/2$. Mean-field interaction penalties are given by $L^2$-valued functionals $f$ and $g$. A representative agent's objective is to minimize the overall penalty
+with viscosity $\sigma$ and control $\alpha$ and a quadratic running cost on the control $L(\alpha_t) = |\alpha_t|^2/2$. Mean-field interaction penalties are given by $L^2$-valued functionals $f$ and $g$. A representative agent's objective is to minimize the overall cost
 \begin{equation}\label{eq:ControlObjective}
 	\inf_{\alpha} J(\alpha) = \EE\left[
 	\int_0^T \frac{1}{2}|\alpha_t|^2 + f(X_t, \rho_t) \,dt + g(X_T, \rho_T)
 	\right]
 \end{equation}
-subject to \cref{eq:AgentDynamics}, and where $\rho_t$ is the overall distribution of agents at time $t$. Following the usual dynamic programming framework, \textcite{LASRY2006679} consider \textbf{closed-loop feedback form} or \textit{Markov} controls
-\begin{equation}
-	\alpha_t = \phi(t, X_t).
-\end{equation}
-For quadratic running costs, the feedback is classically the gradient of the value function $\phi = \nabla u$.
+subject to \cref{eq:AgentDynamics}, and where $\rho_t$ is the distribution of agents at time $t$. Following the usual dynamic programming framework, we consider \textit{Markov} or \textit{closed-loop feedback} controls $\alpha_t = \phi(t, X_t)$. For quadratic running costs, $\phi = \nabla u$ where $u$ is the value function.
 
-The Nash equilibrium agent-control dynamics can be summarized by the partial differential equations:
-\begin{subequations}\label{eq:VariationalQuadraticMFG}
-	\begin{align}\label{eq:VarQuadMFGHJB}
-	-\partial_t u - \frac{\sigma^2}{2}\Delta u + \frac12|\nabla u|^2 &= f(x, \rho_t), \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:VarQuadMFGKolmo}
+Nash equilibria can be summarized by the following system of coupled Hamilton-Jacobi-Bellman and diffusion (Fokker-Planck) PDEs:
+\begin{subequations}\label{eq:QuadraticMFG}
+	\begin{align}\label{eq:MFGHJB}
+	-\partial_t u - \frac{\sigma^2}{2}\Delta u + \frac12|\nabla u|^2 &= f(x, \rho_t), \quad (t,x) \in  (0, T) \times \Omega \\\label{eq:MFGKolmo}
 	\partial_t \rho_t - \frac{\sigma^2}{2}\Delta\rho_t - \divg(\rho_t \nabla u) &= 0 \\
 	u(T, \cdot) &= g(x, \rho_T)
 	\end{align}
 \end{subequations}
-where $t\mapsto \rho_t$ is a trajectory in the space of measures and $\rho_0$ is given, and $\Omega\subset\RR^d$. The applications $\mu\mapsto f(\cdot, \mu)$ and $\mu\mapsto g(\cdot, \mu)$ are supposed to be derivatives of some real-valued functionals $F$ and $G$ on the space of measures. For instance, in the case considered by \textcite{benamou:hal-01295299}, the running cost functional is a function of space $f(x, \mu) = \Psi(x)$, which has antiderivative $F(\mu) = \int_\Omega \Psi(x) \,d\mu(x)$ in the space of measures.
-
-\Cref{eq:VarQuadMFGHJB,eq:VarQuadMFGKolmo} form a coupled system of control (Hamilton-Jacobi-Bellman) and diffusion (Fokker-Planck) partial differential equations. They can be solved in some cases using finite-difference methods (see \textcite{achdou:hal-01456506}).
+where $t\mapsto \rho_t$ is a trajectory in the space of measures and $\rho_0$ is given, and $\Omega\subset\RR^d$. The applications $\mu\mapsto f(\cdot, \mu)$ and $\mu\mapsto g(\cdot, \mu)$ are supposed to be derivatives of some real-valued functionals $F$ and $G$ on the space of measures. For instance, if the terminal cost is a function of space $g(x, \mu) = \Psi(x)$, which has antiderivative $G(\mu) = \int_\Omega \Psi(x) \,d\mu(x)$ in the space of measures.
+These PDEs can be solved in some cases using finite-difference methods (see \textcite{achdou:hal-01456506}).
 
 \end{document}
