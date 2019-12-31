@@ -4,7 +4,7 @@ A few predefined room masks.
 import numpy as np
 from numpy import ndarray
 
-def room1(xg: ndarray, yg: ndarray):
+def room1(xg: ndarray, yg: ndarray) -> ndarray:
     mask = (np.abs(yg-0.66) <= 0.06) & (xg <= 0.7)
     # Large block
     mask[:] = mask | ((np.abs(xg - 0.6) < 0.1) & (np.abs(yg - 0.56) < 0.1))
@@ -14,7 +14,7 @@ def room1(xg: ndarray, yg: ndarray):
     mask[:] = mask | ((yg <= 0.015) & ((xg <= 0.64) | (xg >= 0.8)))
     return mask
 
-def room1_bis(xg: ndarray, yg: ndarray):
+def room1_bis(xg: ndarray, yg: ndarray) -> ndarray:
     mask = (np.abs(yg-0.66) <= 0.06) & (xg <= 0.7)
     mask[:] = mask | (np.abs(yg - 0.3) <= 0.04) & ((xg <= 0.10) | (xg >= 0.24))
     mask[:] = mask | ((xg <= 0.015) | (xg >= 0.985))
@@ -23,12 +23,11 @@ def room1_bis(xg: ndarray, yg: ndarray):
     return mask
 
 
-def room2(xg: ndarray, yg: ndarray):
+def room2(xg: ndarray, yg: ndarray) -> ndarray:
     """
     Set up for y_max = 2.0
     """
     mask = np.zeros_like(xg, dtype=bool)
-    print("Mask shape:", mask.shape)
     # Large block
     mask[:] = mask | ((xg <= 0.46) & (np.abs(yg-.9) < .5))
     mask[:] = mask | ((xg >= 0.54) & (np.abs(yg-.9) < .5))
@@ -41,4 +40,12 @@ def room2(xg: ndarray, yg: ndarray):
     mask[:] = mask | ((xg <= 0.015) | (xg >= 0.985))
     mask[:] = mask | ((yg >= 1.985))
     mask[:] = mask | ((yg <= 0.015))
+    return mask
+
+def room3(xg: ndarray, yg: ndarray) -> ndarray:
+    """Setup for `[0,1]*[0,1]`."""
+    mask = np.zeros_like(xg, dtype=bool)
+    obst = np.abs(xg - 0.6) < 0.15
+    obst[:] = obst & (np.cos(10*np.pi*yg) > 0.1)
+    mask[:] = mask | obst
     return mask

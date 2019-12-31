@@ -1,5 +1,6 @@
 # cython: infer_types=True
 # cython: boundscheck=False
+# cython: wraparound=False
 # cython: nonecheck=False
 """Message-passing algorithm for computing the tensor contraction."""
 cimport cython
@@ -9,21 +10,22 @@ from numpy cimport ndarray
 
 
 cdef class KernelOp:
-    cpdef call(self, ndarray x):
+    cpdef ndarray[double] call(self, ndarray x):
         pass
 
-@cython.wraparound(False)
+
 cdef class FactoredKernel(KernelOp):
+    """Factorized kernel for two dimensions."""
     cdef ndarray K1, K2
     
     def __init__(self, ndarray K1, ndarray K2):
         self.K1 = K1
         self.K2 = K2
 
-    cpdef call(self, ndarray x):
-        return np.dot(self.K2 @ x, self.K1)
+    cpdef ndarray[double] call(self, ndarray x):
+        return np.dot(np.dot(self.K2, x), self.K1)
 
-@cython.wraparound(False)
+
 cpdef ndarray[double] compute_message(list arrs, int idx, KernelOp op):
     r"""Perform partial convolution with the N marginals.
 
@@ -49,9 +51,9 @@ cpdef ndarray[double] compute_message(list arrs, int idx, KernelOp op):
     return A * B
 
 
-@cython.wraparound(False)
 cpdef list compute_marginals(list arrs, KernelOp op):
     r"""Compute the marginals `a[k] * op(a[0],...,a[k-1],a[k+1],...a[n-1])`.
+    Complexity scales with `len(arrs)**2`.
 
     Args:
         arrs: List of dual potentials.

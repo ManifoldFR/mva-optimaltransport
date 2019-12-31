@@ -11,7 +11,7 @@ def plot_domain(a: ndarray, cax=None, cmap=cm.Greys, extent=extent_,
     """Plot the domain in black & white"""
     if cax is None:
         cax = plt.gca()
-    if not 'alpha' in kwargs:
+    if 'alpha' not in kwargs:
         kwargs['alpha'] = 0.72
     kwargs['cmap'] = cmap
     kwargs['zorder'] = zorder
@@ -31,5 +31,5 @@ def plot_measure(a: ndarray, cax=None, cmap=cm.Blues, extent=extent_,
 
 def send_zero_transparent(a: ndarray):
     res = np.zeros(a.shape + (4,))  # define image
-    res[..., 3] = a/a.max()
+    res[..., 3] = a / a.max()
     return res

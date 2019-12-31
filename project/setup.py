@@ -2,7 +2,7 @@ from setuptools import setup
 from Cython.Build import cythonize
 import numpy
 
-name = "Fast sweeping algorithm for HJ equation"
+name = "Algorithms for entropic variational MFGs."
 
 cy_exts = ['fastsweeper/*.pyx', '*.pyx']
 
