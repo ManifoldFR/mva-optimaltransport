@@ -20,13 +20,13 @@ def plot_domain(a: ndarray, cax=None, cmap=cm.Greys, extent=extent_,
                       **kwargs)
 
 
-def plot_measure(a: ndarray, cax=None, cmap=cm.Blues, extent=extent_,
-                 zorder=4, interpolation='none', **kwargs):
+def plot_measure(a: ndarray, cax: plt.Axes=None, cmap=cm.Blues, extent=extent_,
+                 zorder=4, **kwargs):
     if cax is None:
         cax = plt.gca()
     kwargs['cmap'] = cmap
-    return cax.imshow(a, origin='lower', extent=extent,
-                      interpolation='none', **kwargs)
+    #return cax.imshow(a, origin='lower', extent=extent, interpolation='none', **kwargs)
+    return cax.contourf(a, extent=extent, levels=40, **kwargs)
 
 
 def send_zero_transparent(a: ndarray):

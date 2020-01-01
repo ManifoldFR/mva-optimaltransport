@@ -2,12 +2,11 @@ from setuptools import setup
 from Cython.Build import cythonize
 import numpy
 
-name = "Algorithms for entropic variational MFGs."
+name = "SMFG_toolbox"
 
-cy_exts = ['fastsweeper/*.pyx', '*.pyx']
+cy_exts = ['fastsweeper/*.pyx', 'utils/*.pyx', '*.pyx']
 
 setup(
-    name=name,
     ext_modules=cythonize(
         cy_exts, language_level=3,
         compiler_directives={'embedsignature': True}),

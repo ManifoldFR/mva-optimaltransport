@@ -1,7 +1,8 @@
 **/*.so
 **/*.dll
 
-# Individual generated C/C++ files to ignore
+# Individual Cython generated files to ignore
+utils/*.c
 **/sweep.c
 contraction.c
 *.html
