@@ -9,3 +9,6 @@ cdef class FactoredKernel(KernelOp):
     cdef ndarray K1, K2
     
     cdef ndarray[double] call(self, ndarray x)
+
+cpdef ndarray[double] compute_message(list arrs, size_t idx, KernelOp op)
+
