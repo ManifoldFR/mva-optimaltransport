@@ -3,6 +3,7 @@
 
 # Individual Cython generated files to ignore
 utils/*.c
+scenarios/*.c
 **/sweep.c
 contraction.c
 *.html
