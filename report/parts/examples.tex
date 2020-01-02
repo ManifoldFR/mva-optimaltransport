@@ -4,7 +4,12 @@
 
 The examples and required algorithms are implemented in Python and Cython\footnote{\url{https://github.com/ManifoldFR/mva-optimaltransport/tree/master/project}}.
 
-We use the multi-marginal Hilbert metric $d_\calH(a_0,\ldots,a_N)$ defined in \textcite[p.~16]{benamou2017generalizedIncompressible} to assess convergence and stop early when $d_\calH < \eta$ for some threshold $\eta$.
+We use the multi-marginal Hilbert metric 
+\begin{equation}
+	d_\calH(a_0,\ldots,a_N) =
+	\sum_{k=0}^{N-1} d_\calH(a_k, a_{k+1})
+\end{equation}
+defined in \textcite[p.~16]{benamou2017generalizedIncompressible} to assess convergence and stop early when $d_\calH < \eta$ for some threshold $\eta$.
 
 \subsection{Crowd motion example}
 
@@ -248,7 +253,7 @@ Implementation of the full multimarginal problem is not straightforward. The cor
 
 
 
-\paragraph{Third room.} The setup is given \cref{fig:Room3}. Computation on a $M=81\times 81$ grid, viscosity $\sigma=0.1$ and $150$ iterations took $43$ seconds. The $L^\infty$ constraint relative error was of order $10^{-8}$.
+\paragraph{Third room.} The setup is given \cref{fig:Room3}. Computation on a $M=101^2$ grid, $30$ time steps, took $43$ seconds. The $L^\infty$ constraint relative error was of order $10^{-8}$.
 
 We observe the ``bleeding" problem: some of the mass decides to clip through obstacles and walk through walls. This is obviously not a physically acceptable solution.
 

@@ -7,7 +7,7 @@ from matplotlib import cm
 from utils.rooms import room1
 from utils import plot_domain, plot_measure, send_zero_transparent
 import time
-from fastsweeper.sweep import init_grid, update_grid, fast_sweep
+from utils.sweep import init_grid, update_grid, fast_sweep
 
 
 plt.rcParams['figure.figsize'] = (5, 5)

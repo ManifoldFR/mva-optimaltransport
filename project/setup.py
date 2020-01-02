@@ -4,7 +4,7 @@ import numpy
 
 name = "SMFG_toolbox"
 
-cy_exts = ['fastsweeper/*.pyx', 'utils/*.pyx', '*.pyx']
+cy_exts = ['utils/*.pyx', '*.pyx']
 
 setup(
     ext_modules=cythonize(

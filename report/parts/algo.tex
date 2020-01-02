@@ -14,7 +14,7 @@ Let $N$ be the number of discrete steps for the time discretization of the probl
 	\calS(\mu_0,\ldots,\mu_N) = 
 	\inf_{\gamma \in \Pi(\mu_0, \ldots, \mu_N)} H(\gamma | R^N)
 \end{equation}
-where , $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$, and $\Pi(\mu_0, \ldots, \mu_N)$ is the usual constraint set for transport ($P^k_{\#}\gamma = \mu_k$). The agent objective \cref{eq:ControlObjective} translates to
+where , $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$, and $\Pi(\mu_0, \ldots, \mu_N)$ is the usual constraint set for transport ($\pi^k_{\#}\gamma = \mu_k$). The agent objective \cref{eq:ControlObjective} translates to
 \begin{equation}
 	\mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
 \end{equation}
@@ -30,7 +30,7 @@ Expanding the inf-within-inf leads to the following convex optimization problem:
 \begin{aligned}
 &\inf_{\gamma \in \calP(\Omega^{N+1})}
 H(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
-&\suchthat\ \mu_k = P^k_\#\gamma,\quad 0\leq k\leq N
+&\suchthat\ \mu_k = \pi^k_\#\gamma,\quad 0\leq k\leq N
 \end{aligned}
 \end{equation}
 where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$. This is a generalized multimarginal optimal transport problem.
