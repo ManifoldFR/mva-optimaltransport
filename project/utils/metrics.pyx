@@ -13,7 +13,7 @@ cpdef double hilbert_metric(ndarray u, ndarray v, double epsilon=1e-30):
     return np.max(diff) - np.min(diff)
 
 
-cpdef double hilbert_metric_chained(list arrays):
+cpdef double hilbert_metric_chained(list a1, list a2):
     """Compute the chained Hilbert metric as in the article "Generalized incompressible
     flows, multi-marginal transport and Sinkhorn algorithm. 2018." by Benamou et al.
 
@@ -23,7 +23,7 @@ cpdef double hilbert_metric_chained(list arrays):
     """
     cdef double result = 0.
     cdef size_t i
-    cdef size_t n_marg = len(arrays)
-    for i in range(n_marg-1):
-        result += hilbert_metric(arrays[i], arrays[i+1])
+    cdef size_t n_marg = len(a1)
+    for i in range(n_marg):
+        result += hilbert_metric(a1[i], a2[i])
     return result

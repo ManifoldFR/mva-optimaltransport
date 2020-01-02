@@ -85,13 +85,13 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 \end{prop}
 
 
-\subsection{Handling finite domains and obstacles}
+\subsection{Handling finite domains and obstacles}\label{sec:Finitedomainobstacles}
 
 The theory introduced by the paper has some limitations: for instance it only considers MFGs with domain $\RR^d$. What happens when our domain is some $\Omega \subsetneq \RR^d$, for instance a finite set with holes and obstacles? The standard heat kernel $\bfP$ is inadequate in that case and the appropriate Wiener measure on the space of trajectories $\calX$ changes.
 
 \textcite{benamou:hal-01295299} propose to circumvent the problem by imposing a no-mass constraint $\rho = 0$ on the subset of obstacles $\mathscr{O}$ and keeping $\Omega$ a rectangular domain discretized as a regular Cartesian grid, on which the heat kernel has the advantage of being separable.
 
-As \textcite[p.~5]{benamou2018entropy} remark, the heat kernel \eqref{eq:StandardDHeatKernel} is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the infinitesimal generator of the standard Wiener process on $\RR^d$.
+As \textcite[p.~5]{benamou2018entropy} remark, the heat kernel \eqref{eq:StandardDHeatKernel} is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the infinitesimal generator of the standard Wiener process on $\RR^d$. Introducing a kernel based on a geodesic distance $d(x,y)$ defined on $\Omega$ would be more appropriate: this is suggested in \textcite{peyr2015entropic} for use JKO flows to solve PDEs on manifolds.
 
 
 \subsection{Spatial discretization}\label{sec:PartialDiscret}

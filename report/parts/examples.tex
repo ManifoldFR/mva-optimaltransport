@@ -4,13 +4,20 @@
 
 The examples and required algorithms are implemented in Python and Cython\footnote{\url{https://github.com/ManifoldFR/mva-optimaltransport/tree/master/project}}.
 
+We use the multi-marginal Hilbert metric $d_\calH(a_0,\ldots,a_N)$ defined in \textcite[p.~16]{benamou2017generalizedIncompressible} to assess convergence and stop early when $d_\calH < \eta$ for some threshold $\eta$.
+
 \subsection{Crowd motion example}
 
 We start by considering simple examples for crowd motion on a flat 2D grid, going from cases where a closed-form solution can be written to more complex cases where Sinkhorn iterations and computing multi-marginal convolutions become a concern. We look at how the penalty functions and constraints (obstacles, hard congestion, potential-based penalties) discussed in \textcite{benamou:hal-01295299} work out.
 
-The model we use is the same as in \textcite{peyr2015entropic}.
+Our crowd motion model and formulation is the one suggested in \textcite{benamou:hal-01295299} (and earlier in \textcite{peyr2015entropic}) for modeling the problem. The cost structure is as follows: the terminal penalty is given by the constraints for the obstacles and congestion, and a potential $\Psi(x) = d(x, \mathscr A)^{\beta}, \beta > 0$, related to the distance to a target set $\mathscr{A}$:
+\[
+	G(\mu) = \langle \Psi, \mu\rangle + \imath_{0}(\mathds{1}_{\mathscr O}\mu)
+	+ \imath_{[0,\bar{m}]}(\mu).
+\]
+\Cref{fig:CrowdExamplePotential} shows an example potential where we use the Euclidean distance to the target $\mathscr{A}$.
 
-The following proposition provides the KL-proximal operators for a set of constraints and potentials that we will use.
+The following proposition provides the KL-proximal operators for a set of constraints and potentials that we will use. A proof is shown in \textcite{peyr2015entropic}.
 \begin{prop}\label{prop:KLproxExamples}~
 \begin{itemize}
 	\item The hard congestion constraint is $f(\mu) = \imath_{[0,\overline{m}]}(\mu)$. Its KL-projection is
@@ -30,41 +37,32 @@ The following proposition provides the KL-proximal operators for a set of constr
 \end{itemize}
 \end{prop}
 
+
 \subsubsection{Two-marginal case}
 
-We start with a very simplified approximation of the crowd displacement problem on $\Omega = [0, 1]^2$, with only the first (initial agent distribution) and final steps decided by the terminal penalty function $G$. Doing this, we follow the suggestions of \textcite{benamou:hal-01295299} for modeling the problem.
+We start with a very simplified approximation of the crowd displacement problem on $\Omega = [0, 1]^2$, with only the first (initial agent distribution) and final steps decided by the terminal penalty function $G$. 
 
-
-We set the final penalty $G$ to be the obstacle constraint on the set $\mathscr{O}\subset\Omega$ and a potential $\Psi(x) = d(x, \mathscr A)^{\beta}, \beta > 0$, related to the distance to a target set $\mathscr{A}$ (see \cref{fig:CrowdExamplePotential}):
-\[
-	G(\mu) = \langle \Psi, \mu\rangle + \imath_{0}(\mathds{1}_{\mathscr O}\mu)
-\]
 Thus, the agents engage in a one-round mean-field game where they are only concerned with moving to regions with lower potential $\Psi$ -- as close as possible to $\mathscr{A}$ -- whilst obeying physical constraints related to the obstacles.
-
 
 The discretized MFG problem with viscosity parameter $\epsilon = \sigma^2$ can be written as the following transport problem:
 \begin{equation}\label{eq:2MargFuzzyObstacleObj}
 \begin{aligned}
 	&\inf_\gamma{} \langle \Psi, \gamma^T\mathds{1}\rangle + \epsilon \KL(\gamma | \bfR) \\
-	\suchthat\ & \gamma\mathds{1} = \rho_0, \quad \gamma^T\mathds{1} \odot \mathds{1}_{\mathscr{O}} = 0
+	\suchthat\ & \gamma\mathds{1} = \rho_0, \quad \gamma^T\mathds{1} = \rho_1  \\
+	& \rho_1\odot \mathds{1}_{\mathscr{O}} = 0  \\
+	& \rho_1 \leq \bar{m}
 	\end{aligned}
 \end{equation}
-In this two-marginal case, the Gibbs kernel $\bfR = \bfP$ is the discretization of the heat kernel as discussed in \cref{sec:PartialDiscret}:
-\[
-	\bfR_{i,j} = P_{h\epsilon}(x_j - x_i)
-\]
-for all grid indices $i,j$.
-
-
 
 In this problem we want to observe the optimal target distribution $\rho^*_1 = (\gamma^*)^T\mathds{1}$ the agents reach at the final time $t=1$.
 
 \begin{prop}\label{thm:2MargFuzzyTarget}
 Problem \eqref{eq:2MargFuzzyObstacleObj} can be solved in closed form: the Lagrange multiplier $u_0^*$ for the marginal law constraint satisfies
-\[
-	a_0^* = e^{u_0^*/\epsilon}  = \frac{\rho_0}{\bfR a^*_1}
-\]
-where $a^*_1 = e^{-\Psi/\epsilon}\odot\mathds{1}_{\Omega\backslash\mathscr{O}}$, and the optimal coupling is
+\begin{align*}
+	a_0^* &= e^{u_0^*/\epsilon}  = \frac{\rho_0}{\bfR a^*_1}  \\
+	a_1^* &= \min\left(\frac{\bar{m}}{\bfR a_0^*}, e^{-\Psi/\epsilon}\right)
+\end{align*}
+and the optimal coupling is
 \[
 	\gamma^* = \bfR\odot (a_0^* \otimes a_1^*)	
 \]
@@ -73,8 +71,9 @@ It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$. 
 	\rho_1 = \gamma^T\mathds{1} = a_1^* \odot \bfR a_0^*
 \]
 \end{prop}
+
  
-\paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the discrete MFG \eqref{eq:2MargFuzzyObstacleObj}. \cref{fig:2MargFuzzyTransportObstacles} provides a representation of both. We also checked the results when removing the constraints on the obstacles (essentially setting $\mathscr{O}$), and when lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}). The results shown are satisfactory for the given potential $\Psi$: as expected the agents try to stay near the low-potential regions. But the results do not exactly look intuitive if we think of the problem as an exit problem: we see the need for appropriate potentials when modeling.
+\paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the discrete MFG \eqref{eq:2MargFuzzyObstacleObj}. \cref{fig:2MargFuzzyTransportObstacles} provides a representation of both. We also checked the results when removing the constraints: this leads to $a^*_1$ being obtainable in closed form with no iterations. We also looked at lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}). The results shown are satisfactory for the given potential $\Psi$: as expected the agents try to stay near the low-potential regions. But the results do not exactly look intuitive if we think of the problem as an exit problem: we see the need for appropriate potentials when modeling.
 
 \begin{figure}[h]
 	\centering
@@ -104,16 +103,15 @@ It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$. 
 
 \begin{remark}[A more realistic potential for crowd dynamics]\label{rem:SmartPotential}
 In a room evacuation scenario, for instance, agents would seek to minimize the time-to-exit: the literature shows this leads to the Eikonal equation $|\nabla u(x)| = 1/f(x)$, a kind of Hamilton-Jacobi PDE. We computed the adequate potential shown \cref{fig:CrowdShortedPathPotential} using the Fast Sweeping method \parencite{Zhao2004AFS}. The solution to the associated discrete 2-step MFG is shown \cref{fig:2MargEikonalGame}.
+
+Of course, another way of modeling the exit problem we're considering would be to change the objective \eqref{eq:ControlObjective} to minimizing the stopping time corresponding to the exit, and deduce new MFG equations: this is explored by \textcite{benamou:hal-01295299} who derive a variational formulation for that problem.
 \end{remark}
-
-Of course, another way of modeling the exit problem we're considering would be to change the objective \eqref{eq:ControlObjective} to minimization over a set of stopping times and deduce new MFG equations: this is explored by \textcite{benamou:hal-01295299} who derive a variational formulation for that problem.
-
 
 \begin{figure}
 	\centering
 	\begin{subfigure}[b]{.45\linewidth}
 		\centering
-		\includegraphics[width=\linewidth]{../project/images/multimarg_room1/room_potential.pdf}
+		\includegraphics[width=\linewidth]{../project/images/crowd_eikonal_potential.png}
 		\caption{Domain and potential associated with the fastest path distance.}\label{fig:CrowdShortedPathPotential}
 	\end{subfigure}~
 	\begin{subfigure}[b]{.4\linewidth}
@@ -170,17 +168,7 @@ The marginals are given by
 
 The fixed point can then computed using an iterative algorithm à la generalized Sinkhorn, just as in the algorithm from \Cref{algo:Algo1} suggested by \cite{benamou2018entropy}.
 
-The need for computational efficiency is more pronounced than before due to the tensor contraction in the denominator and need for multiple iterations until convergence. The bottleneck of computing the tensor contractions has already been expanded upon in \cref{sec:PartialDiscret} and led to \Cref{algo:EfficientIntegral}. Here the contractions boil down to
-\[
-	\begin{aligned}
-	&\bfR[\cdot,v,w] = 
-	\mathbf{P} (v \odot \mathbf{P}w) \\
-	&\bfR[u,\cdot,w]
-	= (\mathbf{P}^Tu) \odot (\mathbf{P}w)  \\
-	&\bfR[u, v, \cdot] = 
-	\mathbf{P}^T (v \odot \mathbf{P}^T u)
-	\end{aligned}
-\]
+The need for computational efficiency is more pronounced than before due to the tensor contraction in the denominator and need for multiple iterations until convergence. The bottleneck of computing the tensor contractions has already been expanded upon in \cref{sec:PartialDiscret} and led to \Cref{algo:EfficientIntegral}.
 
 \paragraph{Numerical experiment.} An example on the domain $\Omega$ from before is given \cref{fig:3MargTransport}. The result is not qualitatively satisfying, because the intermediate step looks as if some of the mass ``bleeds" through the boundary instead of actually being constrained.
 
@@ -191,40 +179,61 @@ The need for computational efficiency is more pronounced than before due to the 
 \end{figure}
 
 
-
-
-
 \subsubsection{Full $N$-marginal case}
 
 Implementation of the full multimarginal problem is not straightforward. The core effort is computing the denominator of the Sinkhorn iterations from \Cref{algo:Algo1}, which is handled using the sum-product \cref{algo:EfficientIntegral}.
 
 
-\paragraph{Initial example.} The setup is the same as in the prequel. The result is given \cref{fig:NMargEx1Soltn}. The grid size was $M = 81\times 81$, and the result was obtained with $150$ Sinkhorn iterations, which took about $84$ seconds on a 2.6GHz Intel Core i7 processor. For this number of iterations, the relative $L^\infty$ error for the $\rho_0$ constraint is of order $10^{-5}$.
+\paragraph{Initial example.} The setup is the same as in the prequel. The result is given \cref{fig:NMargEx1Soltn}. The grid size was $M = 101^2$, $30$ time steps. Convergence of the Hilbert metric was obtained in $62$ seconds on a 2.6GHz Intel Core i7 processor. For this number of iterations, the relative $L^\infty$ error for the $\rho_0$ constraint is of order $10^{-5}$.
 
 \begin{figure}[h]
 	\centering
-	\begin{subfigure}[c]{.45\linewidth}
+	\begin{subfigure}[c]{.4\linewidth}
 	\includegraphics[width=\linewidth]{../project/images/multimarg_room1/congestion_plot.pdf}
-	\caption{Evolution of the maximum agent density $\|\rho_t\|_\infty$ over time.}
+	\caption{Congestion plot of $(\|\rho_t\|_\infty)_t$.}
 	\end{subfigure}~
-	\begin{subfigure}[c]{.55\linewidth}
-	\includegraphics[width=\linewidth]{../project/images/multimarg_room1/multimarg_transport.pdf}
-	\caption{Numerical solution of the MFG for the first room.}\label{fig:NMargEx1Soltn}
+	\begin{subfigure}[c]{.4\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room1/hilbert_convergence.png}
+		\caption{Convergence of the Hilbert metric.}
 	\end{subfigure}
-	\begin{subfigure}[c]{.45\linewidth}
-		\includegraphics[width=\linewidth]{../project/images/multimarg_room2/congestion_plot.pdf}\caption{Congestion plot for the second room.}
-	\end{subfigure}~
-	\begin{subfigure}[c]{.55\linewidth}
-		\includegraphics[width=\linewidth]{../project/images/multimarg_room2/multimarg_transport.pdf}
-		\caption{Numerical solution of the MFG for the second example.}\label{fig:NMarg2Steps}
+	\begin{subfigure}[c]{.6\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room1/multimarg_transport.pdf}
+		\caption{Numerical solution of the MFG for the first room.}\label{fig:NMargEx1Soltn}
 	\end{subfigure}
 \end{figure}
+\begin{figure}
+	\centering
+	\begin{subfigure}[c]{.4\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room2/congestion_plot.pdf}
+		\caption{Congestion plot for the second room.}\label{fig:Room2CongestPlot}
+	\end{subfigure}~
+	\begin{subfigure}[c]{.4\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room2/hilbert_convergence.png}
+		\caption{Convergence of the Hilbert metric.}
+	\end{subfigure}
+	\begin{subfigure}[c]{.6\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room2/multimarg_transport.pdf}
+		\caption{Numerical solution of the MFG for the second example.}\label{fig:NMargEx2}
+	\end{subfigure}
+\end{figure}
+\begin{figure}
+	\centering
+	\begin{subfigure}[c]{.4\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room3/congestion_plot.pdf}\caption{Congestion plot for the third room.}
+	\end{subfigure}~
+	\begin{subfigure}[c]{.4\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room3/hilbert_convergence.png}
+		\caption{Convergence of the Hilbert metric.}
+	\end{subfigure}
+	\begin{subfigure}[c]{.6\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/multimarg_room3/multimarg_transport.pdf}
+		\caption{Numerical solution of the MFG in the third room.}\label{fig:NMargEx3}
+	\end{subfigure}
+	\caption{Numerical results for crowd motion in three room setups.}
+\end{figure}
 
-Once again, we observe the ``bleeding" problem: some of the mass decides to clip through obstacles and walk through walls. This is obviously not a physically acceptable solution.
 
-
-\paragraph{Second room.} The setup is given in \cref{fig:NMarg2DomainPot}: the new domain is $\Omega = [0,1] \times [0,2]$ and consists of two rooms separated by a long but narrow hallway with a singular choke point. We use a viscosity parameter $\sigma = 0.1$. Results are given \cref{fig:NMarg2Steps}. The constraints and costs are identical as before. The grid size was $M = 51 \times 101$, and the result was obtained with $150$ Sinkhorn iterations, which took about $118$ seconds on a 2.6GHz Intel Core i7 processor. The final relative $L^\infty$ error on the $\rho_0$ constraint was of order $\sim 10^{-4}$.
-
+\paragraph{Second room.} The setup is given in \cref{fig:NMarg2DomainPot}: the new domain is $\Omega = [0,1] \times [0,2]$ and consists of two rooms separated by a long but narrow hallway with a singular choke point. We use a viscosity parameter $\sigma = 0.1$. Results are given \cref{fig:NMargEx2}. The constraints and costs are identical as before. The grid size was $M = 51 \times 101$, and the result was obtained with $150$ Sinkhorn iterations, which took about $118$ seconds on a 2.6GHz Intel Core i7 processor. The final relative $L^\infty$ error on the $\rho_0$ constraint was of order $10^{-4}$. However, the congestion plot \cref{fig:Room2CongestPlot} suggests that the algorithm hasn't exactly converged.
 
 \begin{figure}[h]
 	\centering
@@ -239,7 +248,9 @@ Once again, we observe the ``bleeding" problem: some of the mass decides to clip
 
 
 
-\paragraph{Third room.} The setup is given \cref{fig:Room3}. Computation on a $M=81\times 81$ grid, viscosity $\sigma=0.08$ and $150$ iterations took $43$ seconds. The $L^\infty$ constraint relative error was of order $10^{-16}$.
+\paragraph{Third room.} The setup is given \cref{fig:Room3}. Computation on a $M=81\times 81$ grid, viscosity $\sigma=0.1$ and $150$ iterations took $43$ seconds. The $L^\infty$ constraint relative error was of order $10^{-8}$.
+
+We observe the ``bleeding" problem: some of the mass decides to clip through obstacles and walk through walls. This is obviously not a physically acceptable solution.
 
 \begin{figure}[h]
 	\centering

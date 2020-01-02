@@ -51,8 +51,7 @@ the push-forward of $Q$ by the evaluation map $e_t\colon \xi \in\calX\longmapsto
 	\end{equation}
 	where $P_t$ is the standard $d$-dimensional heat kernel:
 	\begin{equation}\label{eq:StandardDHeatKernel}
-		P_t(u) =
-		\frac{1}{(2\pi t)^{d/2}} \exp\left(
+		P_t(u) = \exp\left(
 		-\frac{|u|^2}{2t}
 		\right)
 	\end{equation}
@@ -98,7 +97,7 @@ The entropic Lagrangian variational formulation of the MFG \eqref{eq:QuadraticMF
 
 The paper by \textcite[sec.~4.2]{benamou2018entropy} shows the following equivalence property between the variational formulations of the mean-field game:
 \begin{prop}[Equivalence theorem]
-	Suppose the measure of trajectories $Q \in \calP(\calX)$ solves the entropic variational MFG \eqref{eq:EntropyLagrangianProblem}. Then the trajectory of measures $\rho = (Q_t)_{t\in[0,T]}$ solves the variational MFG problem \eqref{eq:EulerianProblem}.
+	Suppose the measure of trajectories $Q \in \calP(\calX)$ solves the entropic variational MFG \eqref{eq:EntropyLagrangianProblem}. Then the trajectory of measures $\rho = (Q_t)_{t\in[0,T]}$ solves the Eulerian variational MFG problem \eqref{eq:EulerianProblem}.
 \end{prop}
 
 
