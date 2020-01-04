@@ -2,14 +2,14 @@
 
 \begin{document}
 
-A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. Each agent's actions get a feedback response that depends on other agents' states and actions through a \textit{mean-field} effect. In the time-evolving setting, every agent obeys to some dynamics and his actions are modeled by a dynamic control problem \cite{LASRY2006679}.
+A mean-field game \cite{LASRY2006619,LASRY2006679} is a strategic decision-making problem with a very large, continuously-distributed number of interacting agents inside a state space: the overall theory developed by \citeauthor{LASRY2006619} can be used as a means to model large, computationally intractable games. Each agent's actions get a feedback response that depends on other agents' states and actions through a \textit{mean-field} effect.
 
-The general setup of a dynamic MFG has every agent penalize a running cost on the control, aspects of the trajectory (namely the mean-field interactions with other agents), as well as a terminal cost on the its final position and the overall final distribution of agents \cite{LASRY2006679}.
-The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on games with stochastic agent dynamics 
+In a dynamic MFG, every agent penalizes a running cost as well as a terminal cost on the its final position and the overall final distribution of agents \cite{LASRY2006679}.
+The framework of \cites{benamou:hal-01295299}{benamou2018entropy} focuses on games with stochastic dynamics
 \begin{equation}\label{eq:AgentDynamics}
-dX_t = \alpha_tdt + \sigma dW_t
+	dX_t = \alpha_tdt + \sigma dW_t
 \end{equation}
-with viscosity $\sigma$ and control $\alpha$ and a quadratic running cost on the control $L(\alpha_t) = |\alpha_t|^2/2$. Mean-field interaction penalties are given by $L^2$-valued functionals $f$ and $g$. A representative agent's objective is to minimize the overall cost
+with viscosity $\sigma$ and control $\alpha$ and a quadratic running cost on the control $L(\alpha_t) = |\alpha_t|^2/2$. The penalties are given by $L^2$-valued functionals $f$ and $g$. A representative agent's objective is to minimize the overall cost
 \begin{equation}\label{eq:ControlObjective}
 	\inf_{\alpha} J(\alpha) = \EE\left[
 	\int_0^T \frac{1}{2}|\alpha_t|^2 + f(X_t, \rho_t) \,dt + g(X_T, \rho_T)
@@ -25,7 +25,7 @@ Nash equilibria can be summarized by the following system of coupled Hamilton-Ja
 	u(T, \cdot) &= g(x, \rho_T)
 	\end{align}
 \end{subequations}
-where $t\mapsto \rho_t$ is a trajectory in the space of measures and $\rho_0$ is given, and $\Omega\subset\RR^d$. The applications $\mu\mapsto f(\cdot, \mu)$ and $\mu\mapsto g(\cdot, \mu)$ are supposed to be derivatives of some real-valued functionals $F$ and $G$ on the space of measures. For instance, if the terminal cost is a function of space $g(x, \mu) = \Psi(x)$, which has antiderivative $G(\mu) = \int_\Omega \Psi(x) \,d\mu(x)$ in the space of measures.
-These PDEs can be solved in some cases using finite-difference methods (see \textcite{achdou:hal-01456506}).
+where $t\mapsto \rho_t$ is a trajectory in the space of measures and $\rho_0$ is given, and $\Omega\subset\RR^d$. The maps $f(\cdot, \mu)$ and $g(\cdot, \mu)$ are supposed to be derivatives of some real-valued functionals $F$ and $G$. For instance, if the terminal cost is a function of space $g(x, \mu) = \Psi(x)$, it has antiderivative $G(\mu) = \int_\Omega \Psi(x) \,d\mu(x)$.
+These PDEs can be solved in some cases using finite-difference schemes \cite{achdou:hal-01456506}.
 
 \end{document}

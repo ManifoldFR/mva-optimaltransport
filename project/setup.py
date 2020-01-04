@@ -2,7 +2,6 @@ from setuptools import setup
 from Cython.Build import cythonize
 import numpy
 
-name = "SMFG_toolbox"
 
 cy_exts = ['utils/*.pyx', 'scenarios/*.pyx', '*.pyx']
 

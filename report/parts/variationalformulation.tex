@@ -19,9 +19,9 @@ This point of view is called \textit{Eulerian}. The nonconvex problem is solved 
 
 \subsection{Lagrangian formulations}
 
-\textcite{benamou:hal-01295299,benamou2018entropy} introduce a \textit{Lagrangian} point of view: the variational problem is changed to a weighted energy minimization problem on the space of trajectories. The energy of all paths is weighted using a measure on the space of trajectories, and we seek the optimal such measure: this becomes an optimal transport problem. The first paper on variational MFG \cite{benamou:hal-01295299} considers a framework of optimizing a weighted kinetic energy $\calK(Q) = \int \int_0^T \frac{1}{2}|\dot\xi(t)|^2\,dt\,dQ(\xi)$. Equivalence between this point of view and the previous formulation is shown in that same paper.
+\textcite{benamou:hal-01295299,benamou2018entropy} introduce a \textit{Lagrangian} point of view: the variational problem is changed to a weighted energy minimization problem on the space of trajectories. The energy of all paths is weighted using a measure on the space of trajectories, and we seek the optimal such measure: this becomes an optimal transport problem. The first paper \cite{benamou:hal-01295299} on variational MFG considers a framework of optimizing a weighted kinetic energy $\calK(Q) = \int \int_0^T \frac{1}{2}|\dot\xi(t)|^2\,dt\,dQ(\xi)$. Equivalence between this point of view and the previous formulation is shown in that same paper.
 
-Instead of solving for this kinetic objective (with finite difference or finite element discretization), the paper by \textcite{benamou2018entropy} propose an entropic objective to allow for a more computationally efficient numerical method adapted from the Sinkhorn algorithm \textcite{cuturi2013sinkhorn}. \textcite{benamou2018entropy} consider games on the domain $\Omega = \RR^d$ and introduce the following variational framework:
+Instead of solving for this kinetic objective (with finite difference or finite element discretization), the paper by \textcite{benamou2018entropy} introduces an entropic objective to allow for a more computationally efficient numerical method adapted from the Sinkhorn algorithm \cite{cuturi2013sinkhorn}. \citeauthor{benamou2018entropy} consider games on the domain $\Omega = \RR^d$ and introduce the following variational framework.
 
 
 \subsubsection{The Wiener space of trajectories}
@@ -32,8 +32,8 @@ In the unitary viscosity case ($\sigma = 1$), the Wiener measure $R$ on $\calX$ 
 	R(\mathcal{A}) = \int_{\RR^d}\PP(x+W \in \mathcal{A})\, dx
 \]
 where $W$ is the standard Brownian motion (starting at $0$).
-In the non-unitary viscosity case ($\sigma \neq 1$), we introduce $\greenfont\epsilon = \sigma^2$ and the Wiener measure $\greenfont R_\epsilon$ associated with Wiener processes scaled by $\sigma$.
-It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}. \cites{benamou:hal-01295299,benamou2015lagrangian} This construction is needed because it allows us to talk about notions and \textbf{density} and \textbf{entropy of a probability measure on $\calX$} with respect to the Wiener measure, which is used to define the energy to minimize.
+In the non-unitary viscosity case ($\sigma \neq 1$), we introduce $\epsilon = \sigma^2$ and the Wiener measure $R_\epsilon$ associated with Wiener processes scaled by $\sigma$.
+It is an analogue in the space $\calX$ to the usual finite-dimensional Lebesgue measure\footnote{\url{https://en.wikipedia.org/wiki/Infinite-dimensional_Lebesgue_measure}}. This construction is needed because it allows us to talk about notions and \textbf{density} and \textbf{entropy of a probability measure on $\calX$} with respect to the Wiener measure, which is used to define the energy to minimize \cites{benamou:hal-01295299,benamou2015lagrangian}.
 
 
 Measures $Q \in \calP(\calX)$ can also be seen as trajectories $(Q_t)_{t\in[0,T]}$ in $\calP(\RR^d)$ with
@@ -45,7 +45,7 @@ the push-forward of $Q$ by the evaluation map $e_t\colon \xi \in\calX\longmapsto
 \paragraph{Marginals of the Wiener measure.} \textcite{benamou2018entropy} provide the following results on the Wiener measure $R$ on $\RR^d$.
 \begin{itemize}
 	\item The single marginals $R_t$ are the Lebesgue measure $\mathcal{L}^d$ on $\RR^d$.
-	\item The 2-marginals have density on $\RR^d \times \RR^d$
+	\item The 2-marginals $R_{s,t}$, $s<t$ have density on $\RR^d \times \RR^d$
 	\begin{equation}\label{eq:2MarginWienerMeasure}
 		R_{s,t}(x,y) = P_{t-s}(y-x)
 	\end{equation}
@@ -56,13 +56,13 @@ the push-forward of $Q$ by the evaluation map $e_t\colon \xi \in\calX\longmapsto
 		\right)
 	\end{equation}
 	\item The $N$-marginals are given by
-	\begin{equation}
+	\begin{equation}\label{eq:NMarginWienerMeasure}
 		R_{t_1,\ldots,t_N}(x_1,\ldots,x_n) = 
 		\prod_{i=1}^{N-1}
 		P_{h}(x_{i+1}-x_i)
 	\end{equation}
 \end{itemize}
-The last property is especially \textbf{important} for computational reasons, as we will see later. When considering non-unit viscosity and a Wiener measure $R_\epsilon$, the right-hand side of \eqref{eq:2MarginWienerMeasure} changes to $P_{(t-s)\epsilon}(y-x)$. Partial integration with respect to the 2-marginal measure $R_{0,h}$ is actually convolution with respect to the heat kernel $P_h$:
+The last property is especially \textbf{important} for computational reasons, as we will see later. When considering non-unit viscosity and a Wiener measure $R_\epsilon$, \cref{eq:2MarginWienerMeasure} changes to $R_{s,t}(x,y) = P_{(t-s)\epsilon}(y-x)$. Partial integration with respect to the 2-marginal measure $R_{0,h}$ is actually convolution with respect to the heat kernel $P_h$:
 \[
 	\int_\Omega u(x) R_{0,h}(x,y)\,dx =
 	\int_\Omega u(x) P_h(y-x)\,dx =
@@ -79,9 +79,9 @@ But what happens when we change domains? From a computational point of view $\RR
 This method introduces entropic regularization in the problem. As shown in the initial paper \cite{benamou2018entropy}, the resulting variational problem and associated numerical scheme become regularizations of the problem from \cite{benamou:hal-01295299,benamou2015lagrangian}.
 More precisely, the energy to minimize is the entropy with respect to the Wiener measure:
 \begin{equation}
-	\mathcal{E}(Q) = \epsilon H(Q | R_\epsilon) =
+	\mathcal{E}(Q) = H(Q | R_\epsilon) =
 	\begin{cases}
-	\epsilon \int_\calX \log(dQ/dR_\epsilon)\, dQ
+	\int_\calX \log(dQ/dR_\epsilon)\, dQ
 	& \mbox{if } Q \ll R_\epsilon  \\
 	+\infty & \mbox{otherwise}
 	\end{cases}
@@ -90,10 +90,10 @@ More precisely, the energy to minimize is the entropy with respect to the Wiener
 The entropic Lagrangian variational formulation of the MFG \eqref{eq:QuadraticMFG} is:
 \begin{equation}\label{eq:EntropyLagrangianProblem}
 	\inf_{Q\in\calP(\calX)}
-	\epsilon H(Q|R_{\epsilon}) + \int_0^T F(Q_t)\,dt + G(Q_T)\quad
+	H(Q|R_{\epsilon}) + \int_0^T F(Q_t)\,dt + G(Q_T)\quad
 	\suchthat\ Q_0 = \rho_0
 \end{equation}
-
+Notice the absence of a factor $\epsilon$ before the relative entropy term.
 
 The paper by \textcite[sec.~4.2]{benamou2018entropy} shows the following equivalence property between the variational formulations of the mean-field game:
 \begin{prop}[Equivalence theorem]

@@ -8,7 +8,7 @@ from numpy import ndarray
 def room1(xg: ndarray, yg: ndarray) -> ndarray:
     """Setup for `[0,1]*[0,1]`."""
     mask = np.zeros_like(xg, dtype=bool)
-    obst = np.abs(xg - 0.6) < 0.06
+    obst = np.abs(xg - 0.6) < 0.08
     obst[:] = obst & (np.cos(4*np.pi*yg) > -0.992)
     mask[:] = mask | obst
     return mask

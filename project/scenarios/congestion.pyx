@@ -17,15 +17,17 @@ cpdef ndarray prox_operator(ndarray mes, ndarray mask, double congest_max, ndarr
                       congest_max) * (1-mask)
 
 
-cdef double TAU = 1e-30
+cdef double TAU = 1e-20
 
 
+@cython.cdivision(False)
 def multi_sinkhorn(list arrays, KernelOp op, ndarray rho_0, 
                    ndarray mask, double congest_max, ndarray psi,
                    double epsilon=1.):
     """Multimarginal sinkhorn"""
     cdef size_t n_marg = len(arrays)  # no. of marginals
-    cdef ndarray zero_arr = np.zeros_like(rho_0)
+    cdef shape = np.shape(rho_0)
+    cdef ndarray zero_arr = np.zeros(shape)
     cdef ndarray conv
     cdef ndarray numer
     conv = compute_message(arrays, 0, op)

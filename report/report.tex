@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 
 \usepackage{subfiles}
-\usepackage[a4paper,hmargin=2.9cm,vmargin=3.6cm]{geometry}
+\usepackage[a4paper,hmargin=2.8cm,vmargin=3.6cm]{geometry}
 \usepackage{subcaption}
 \usepackage{mathtools}
 \usepackage{amssymb}
@@ -17,6 +17,8 @@
 \usepackage[
 	framemethod=TikZ
 ]{mdframed}
+
+\usepackage{verbatim}
 
 \usepackage{hyperref,cleveref}
 \usepackage{graphicx}
@@ -141,10 +143,9 @@
 
 \begin{abstract}
 	Mean-field games (MFG) are strategic decision-making problems designed to approach complex large-scale, many-agent differential games using partial differential equations and study their Nash equilibria using the convenient theoretical tools of differential equations. In recent years, work has been done on finding variational formulations for MFGs so they can be written as convex optimization problems and eventually be connected to the theory of optimal transport \cite{benamou:hal-01295299,benamou2015lagrangian}.
+	A paper by \textcite{benamou2018entropy} explores a class of variational MFGs that can be written as penalized minimal-entropy problems over a Wiener space, with an efficient numerical algorithm in tow.
 	
-	In particular, a paper by \textcite{benamou2018entropy} explores a class of variational MFGs that can be written as penalized minimal-entropy problems over a Wiener space, with an efficient numerical algorithm in tow.
-	
-	In this report, we summarize the general framework of mean-field games, the ideas behind variational formulations for MFG and how they connect to optimal transport. Then, we clarify the algorithms introduced by \cite{benamou2018entropy}, provide a full implementation, analyze numerical results and discuss theoretical and practical limitations of the approach.
+	In this report, we summarize the general framework of mean-field games, the ideas behind variational formulations for MFG and how they connect to optimal transport. Then, we clarify the algorithms introduced by \cite{benamou2018entropy}, provide a full implementation, analyze numerical results and discuss theoretical and practical limitations of the approach and possible extensions.
 \end{abstract}
 
 
@@ -173,10 +174,15 @@
 
 \section{Conclusion}
 
-The variational mean-field game framework and its OT regularization introduced by \textcite{benamou:hal-01295299,benamou2018entropy} provide useful computational approaches: it shows that some MFGs can be approached by entropic transport problems that can then be solved quickly with matrix multiplications (given the proximal operators).
+The variational mean-field game framework and its OT regularization introduced by \textcite{benamou:hal-01295299,benamou2018entropy} provide useful computational approaches: it shows that some MFGs can be written as optimization problems, and approached by entropic transport problems that can be solved quickly using Sinkhorn scaling.
 
-However the entropy and OT point of view has some \textbf{limitations}: for now it excludes optimal time problems and more general Hamiltonians, and further work has to be done to include them.
+However, the entropic transport point of view has some \textbf{limitations} so far: entropy minimization approaches for optimal time problems (see \cref{rem:SmartPotential}), ergodic problems and non-quadratic Hamiltonians have not been derived yet. Lagrangian formulations of these problems connecting them to OT are required.
 
+
+
+\paragraph{Domain topology and heat kernel} If we want to generalize the approach to more generic domains (non-convex sets, Riemannian manifolds), the Wiener measure based on the heat kernel \eqref{eq:StandardDHeatKernel} in $\RR^d$ might not be appropriate: \textcite[p.~5]{benamou2018entropy} remark that this kernel is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the infinitesimal generator of the standard Wiener process on $\RR^d$.
+For complicated domains such as the second example room of \cref{fig:Room3}, which is a non-convex domain, the problems observed in the results \cref{fig:Room3Results} would justify looking at using a more appropriate kernel.
+\textcite{peyr2015entropic}, which also looks at crowd motion, discusses kernels based on geodesic distances $d(x,y)$ on Riemannian manifolds which are supposed to be more appropriate than the Euclidean distance: they are then applied to solving PDEs using JKO flows.
 
 
 

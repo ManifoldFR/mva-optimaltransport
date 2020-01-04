@@ -20,7 +20,7 @@ def plot_domain(a: ndarray, cax=None, cmap=cm.Greys, extent=extent_,
                       **kwargs)
 
 
-def plot_measure(a: ndarray, cax: plt.Axes=None, cmap=cm.Blues, extent=extent_,
+def plot_measure(a: ndarray, cax: plt.Axes=None, cmap=cm.viridis, extent=extent_,
                  zorder=4, **kwargs):
     if cax is None:
         cax = plt.gca()
@@ -35,13 +35,13 @@ def send_zero_transparent(a: ndarray):
     return res
 
 
-def hilbert_plot(hmetric: ndarray, thresh_):
+def hilbert_plot(hmetric: ndarray, thresh, sigma: float=1.):
     fig = plt.figure(figsize=(4, 4))
-
 
     plt.plot(hmetric, lw=1.2)
     plt.yscale("log")
-    plt.title("Hilbert metric $d_{\mathcal H}$ ($\\eta=%.2e$)" % thresh_)
+    plt.title("Hilbert metric $d_{\mathcal H}$ ($\\eta=%.2e$, $\\sigma=%.3f$)"
+              % (thresh, sigma))
     plt.xlabel("Iteration no. $n$")
     fig.tight_layout()
     return fig

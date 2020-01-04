@@ -10,115 +10,104 @@ However, the paper does not go into detail about handling spatial discretization
 \subsection{Time discretization: multimarginal Sinkhorn}\label{sec:MMOT}
 
 Let $N$ be the number of discrete steps for the time discretization of the problem and $t_k = kh$ be the discrete times with time step $h=T/N$.
-\begin{equation}
-	\calS(\mu_0,\ldots,\mu_N) = 
-	\inf_{\gamma \in \Pi(\mu_0, \ldots, \mu_N)} H(\gamma | R^N)
-\end{equation}
-where , $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$, and $\Pi(\mu_0, \ldots, \mu_N)$ is the usual constraint set for transport ($\pi^k_{\#}\gamma = \mu_k$). The agent objective \cref{eq:ControlObjective} translates to
-\begin{equation}
-	\mathcal{U}(\mu_0,\ldots,\mu_N) = h\sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N).
-\end{equation}
-The overall problem of finding the optimal marginals $\mu_0,\ldots,\mu_N$ is expressed
-\begin{equation}
-	\inf \{
-	\calS(\mu_0, \ldots, \mu_N) + \mathcal{U}(\mu_0, \ldots, \mu_N) 
-	: \mu_k \in \calP_2(\Omega),\; \mu_0 = \rho_0
-	\}
-\end{equation}
-Expanding the inf-within-inf leads to the following convex optimization problem:
-\begin{equation}
+
+Denote $R^N = R_{t_0,\ldots,t_N}$ and the marginals $\mu_k \in \calP_2(\Omega)$, and $\Pi(\mu_0, \ldots, \mu_N)$ is the usual constraint set for transport. \textcite{benamou2018entropy} show that the mean-field game translates to the following convex optimization problem:
+\begin{equation}\label{eq:TimeDiscretePrimal}
 \begin{aligned}
 &\inf_{\gamma \in \calP(\Omega^{N+1})}
-H(\gamma | R^N) + \imath_{\rho_0}(\mu_0) + \sum_{k=1}^{N-1} F(\mu_k) + G(\mu_N) \\
-&\suchthat\ \mu_k = \pi^k_\#\gamma,\quad 0\leq k\leq N
+H(\gamma | R^N) + \imath_{\rho_0}(\rho_0) + \sum_{k=1}^{N-1} F(\rho_k) + G(\rho_N) \\
+\suchthat\ &\pi^k_\#\gamma = \rho_k, \quad 0\leq k\leq N
 \end{aligned}
 \end{equation}
 where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$. This is a generalized multimarginal optimal transport problem.
 
-\textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates and potential functions, by using a multimarginal generalization of a result from \textcite{chizat2016scaling}:
+\textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates, by using a multimarginal generalization of a result from \textcite{chizat2016scaling}:
 \begin{equation}\label{eq:TimeDiscreteDual}
 \sup_u
 \int_{\Omega^{N+1}} \left(1-\exp\left(\oplus_{k=0}^N u_k\right)\right) \,dR^N
 -\imath_{\rho_0}^*(-u_0) - \sum_{k=1}^{N-1} F^*(-u_k) - G^*(-u_N)
 \end{equation}
-where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1}$.
+where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1}$. The optimum $u^*$ of \eqref{eq:TimeDiscreteDual} is linked to the optimal transport plan $\gamma^*$ of \eqref{eq:TimeDiscretePrimal} by
+\begin{equation}
+	\gamma^* = e^{\oplus_{k=0}^N u^*_k} R^N
+\end{equation}
 
 
-\textcite{benamou2018entropy} introduce a Sinkhorn-like iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations inspired by \cite{chizat2016scaling}.
+\textcite{benamou2018entropy} introduce a multimarginal Sinkhorn iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations.
 
-\begin{prop}\label{algo:Algo1}
-	Denote for $k=0,\ldots,N$ and $(a_j)_{j\neq k}$
+\begin{prop}\label{algo:Sinkhorn}
+	Denote for $k=0,\ldots,N$ and $(a_j)_{j}$
 	\[
-	\calI_k((a_j)_{j\neq k})(\tilde{x}_k) = 
+	\calI^a_k(x_k) = 
 	\int_{\Omega^N}
 	\prod_{j\neq k} a_j(x_j)
-	R^N(dx_{0:k-1}, \tilde{x}_k, dx_{k+1:N})
+	R^N(x_0,\ldots,x_N)\,d\boldsymbol{x}_{-k}
 	\]
-	the partial integral of the $a_j,j\neq k$ with respect to $R^N$ without variable $x_k$.
-	For convenience we use the shorthand
-	\[
-	\calI_k^{(n)} = \calI_k\left(\left(a^{(n+1)}_j\right)_{j<k},
-	\left(a^{(n)}_j\right)_{j>k}\right)
-	\]
-	for the $n$th iterate where we denote $a_j = \exp(u_j)$.
+	the marginalization of the $a_j,j\neq k$ with respect to $R^N$ without variable $x_k$.
+	For convenience we use the shorthands
+	\begin{align*}
+	\calI_k^* = \calI_k^{a^*} \quad \text{and}\quad \calI_k^{(n)} = \calI_k\left((a^{(n+1)}_j)_{j<k},
+	(a^{(n)}_j)_{j>k}\right)
+	\end{align*}
+	for the $n$th iterate, where we denote $a_j = \exp(u_j)$.
 	
-	Then we compute the dual potentials iteratively:
-	\begin{equation}
-	\begin{dcases}
-	u_0^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{v(x_0)}) \calI_0^{(n)} \,dx_0 - \imath_{\rho_0}^*(-v) \\
-	u_k^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1- e^{v(x_k)}) \calI_k^{(n)} \,dx_k - hF^*(-v) ,
-	\quad 1\leq k < N  \\
-	u_N^{(n+1)} = \argmax_{v \in L^\infty} \int_{\Omega} (1 - e^{v(x_N)}) \calI_N^{(n)} \,dx_N - G^*(-v)
-	\end{dcases}
-	\end{equation}
-	until convergence.
-	
-	Using duality, we find that the iterates $u_k^{(n)}$ satisfy
+	Using duality, we have that the optimum of \eqref{eq:TimeDiscreteDual} satisfies the fixed-point condition
+	\begin{equation*}\bluefont\left\{
+	\begin{aligned}
+		a^*_0 &= \frac{\rho_0}{\calI_0^*}  \\
+		a^*_k &= \frac{\prox_{hF_k}^{\KL}(\calI_k^*)}{\calI_k^*}, \quad 1\leq k < N  \\
+		a^*_N &= \frac{
+			\prox_{G}^{\KL}(\calI_N^*)}{\calI_N^*
+		}
+	\end{aligned}\right.
+	\end{equation*}
+	where $\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z)$ is the $\KL$-proximal operator.
+	This fixed point condition can be solved using Sinkhorn iterates: these iterates $a_k^{(n)}$ are updated as
 	\begin{equation}
 	{\bluefont
-	a_k^{(n)} = \exp\left(u^{(n)}_k\right) =
+	a_k^{(n+1)} = \exp\left(u^{(n+1)}_k\right) =
 	\frac{
 		\prox_{F_k}^{\KL}(\calI_k^{(n)})
 	}{\calI_k^{(n)}}}
 	\end{equation}
-	where $\prox_F^{\KL}(z) = \argmin_{s} F(s) + \KL(s|z)$ is the KL-proximal operator.
 \end{prop}
 
 
-\subsection{Handling finite domains and obstacles}\label{sec:Finitedomainobstacles}
-
-The theory introduced by the paper has some limitations: for instance it only considers MFGs with domain $\RR^d$. What happens when our domain is some $\Omega \subsetneq \RR^d$, for instance a finite set with holes and obstacles? The standard heat kernel $\bfP$ is inadequate in that case and the appropriate Wiener measure on the space of trajectories $\calX$ changes.
-
-\textcite{benamou:hal-01295299} propose to circumvent the problem by imposing a no-mass constraint $\rho = 0$ on the subset of obstacles $\mathscr{O}$ and keeping $\Omega$ a rectangular domain discretized as a regular Cartesian grid, on which the heat kernel has the advantage of being separable.
-
-As \textcite[p.~5]{benamou2018entropy} remark, the heat kernel \eqref{eq:StandardDHeatKernel} is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the infinitesimal generator of the standard Wiener process on $\RR^d$. Introducing a kernel based on a geodesic distance $d(x,y)$ defined on $\Omega$ would be more appropriate: this is suggested in \textcite{peyr2015entropic} for use JKO flows to solve PDEs on manifolds.
 
 
 \subsection{Spatial discretization}\label{sec:PartialDiscret}
 
-For full numerical implementation, all measures are replaced by multi-dimensional arrays representing discrete histograms over a fixed grid of points $x_i$ in $\RR^d$ of size $M = \prod_k N_k$.
+For full numerical implementation, all measures are replaced by multi-dimensional arrays representing histograms over a grid of size $M = \prod_k N_k$ of points in $\RR^d$.
 
+\paragraph{Handling finite domains and obstacles}\label{sec:Finitedomainobstacles}
+The theory introduced by the paper has some limitations: for instance it only considers MFGs with domain $\RR^d$. What happens when our domain is some $\Omega \subsetneq \RR^d$, for instance a finite set with holes and obstacles? The standard heat kernel $\bfP$ is inadequate in that case and the appropriate Wiener measure on the space of trajectories $\calX$ changes.
 
-\paragraph{Sum-product algorithm.} Integration with respect to the Wiener marginal $R^N$ is the main computational bottleneck.
-Denote $\bfR \in \RR^{M^N}$ the discretization of $R^N$: integration of $a_0,\ldots,a_N\in\RR^M$ translates to the following tensor contraction
+\textcite{benamou:hal-01295299} circumvent the problem by assuming $\Omega$ is a convex domain and imposing a no-mass constraint $\rho = 0$ on a subset of obstacles $\mathscr{O} \subset \Omega$.
+
+\paragraph{Sum-product algorithm.} Denoting $\bfR \in \RR^{M^N}$ the discretization of $R^N$, integration of $a_0,\ldots,a_N\in\RR^M$ with respect to the Wiener marginal $R^N_\epsilon$ translates to
 \[
 	\bfR[a_0, \ldots, a_N] =
 	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N a_{i_k}
-\]A naive implementation would compute the sum in exponential time $\calO(NM^N)$: this is a well known problem is computational statistics and graphical models, and an efficient way of dealing with it is exploiting the structure of the kernel $\bfR$. This aspect is not discussed in the paper by \textcite{benamou:hal-01295299}, although it is important. For the sake of completeness and clarity, we introduce the following algebraic result and deduce an appropriate algorithm:
+\]
+A naive implementation computes the sum in time $\calO(NM^N)$: this is a well known problem is computational statistics and graphical models, and an efficient way of dealing with it is by exploiting the structure of the kernel $\bfR$. This aspect is not discussed in the paper by \textcite{benamou:hal-01295299}: for the sake of completeness and clarity, we introduce the following algebraic result and deduce an appropriate algorithm.
 
+Recall the expression of the Wiener marginal $R^N$ \cref{eq:NMarginWienerMeasure}: it suggests the marginals $\mu_0,\ldots,\mu_N$ only communicate as in an undirected chain. We have the following result:
 \begin{prop}[Efficient convolution to $\bfR$]\label{prop:efficientConvol}
-The kernel $\bfR$ can be factorized as $\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}$ where $\bfP$ is the discrete heat kernel on $\RR^M$. The partial convolution $\calI_k$ (leaving the $k$th component out) can now be written as
-\begin{equation}
-{\bluefont
-	\calI_k = \bfR[(a_j)_{j\neq k}] =
-	\mathbf{A}_{k-1} \odot \mathbf{B}_{k+1}
-}
-\end{equation}
-where $\mathbf{A}_{k} = \bfP^T (a_k \odot \bfP^T(a_{k-1} \odot \cdots))$ and $\mathbf{B}_k = \bfP (a_k \odot \bfP (a_{k+1}\odot \cdots))$.
-\end{prop}
-So we see that due to the kernel structure, the marginals $\mu_0,\ldots,\mu_N$ only communicate as in an undirected chain. This leads to an efficient message-passing \cref{algo:EfficientIntegral}:
+	The kernel $\bfR$ can be factorized as 
+	\[
+		\bfR_{i_0,\ldots,i_N} = \prod_{k=0}^{N-1} \bfP_{i_k,i_{k+1}}
+	\]
+	where $\bfP$ is the discrete heat kernel on the grid. The partial convolution $\calI^a_k$ (leaving the $k$th component out) can now be written as
+	\begin{equation}
+	{\bluefont
+		\calI_k^a = \bfR[(a_j)_{j\neq k}] =
+		\mathbf{A} \odot \mathbf{B}
+	}
+	\end{equation}
+	where $\mathbf{A} = \bfP^T (a_{k-1} \odot \bfP^T(a_{k-2} \odot \cdots))$ and $\mathbf{B} = \bfP (a_{k+1} \odot \bfP (a_{k+2}\odot \cdots))$.
+\end{prop} This leads to the efficient message-passing \cref{algo:EfficientIntegral}.
 \begin{algorithm}[h]
-\caption{Efficient computation of the integral $\calI_k$.}\label{algo:EfficientIntegral}
+\caption{Efficient computation of $\calI_k$.}\label{algo:EfficientIntegral}
 \KwIn{Base heat kernel $\bfP$, index $k$, vectors $(a_j)_{j\neq k}$}
 $\mathbf{A} \leftarrow \mathds{1}$\;
 \For{$i=0$ to $k-1$}{
@@ -131,14 +120,7 @@ $\mathbf{B} \leftarrow \mathds{1}$\;
 \Return{$\mathbf{A}\odot\mathbf{B}$}\;
 \end{algorithm}
 
-The computational complexity of this algorithm depends on how efficiently we can compute the convolution $\mathbf{P}u$. The naive matrix product performs in time $\calO(M^3)$, leading to total complexity $\calO(NM^3)$ which can still be very high. For separable heat kernels $\bfP$, such as on a rectangular grid, factorizing $\bfP u$ as two smaller convolutions can net considerable speedups \parencite[p.~74]{peyr2018computational}.
-
-\paragraph{Projections.}
-In the general case, the KL-proximal operators in the Sinkhorn iterations can be computed using a convex optimization library such as CVXPY\footnote{\url{https://github.com/cvxgrp/cvxpy}} \cite{cvxpy}. Some can be computed explicitly, as we will see in the examples \Cref{sec:Examples}.
-
-
-
-
+The computational complexity of \cref{algo:EfficientIntegral} depends on how efficiently we can compute the convolution $\mathbf{P}u$. The naive matrix product performs in time $\calO(M^3)$, leading to total complexity $\calO(NM^3)$ which can still be very high. For separable heat kernels $\bfP$, such as on a rectangular grid, factorizing $\bfP u$ as two smaller convolutions can net considerable speedups \parencite[see][p.~74]{peyr2018computational} and reduce complexity to $\calO(dN\sqrt[d]{M}^3)$.
 
 
 

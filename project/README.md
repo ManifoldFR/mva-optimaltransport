@@ -4,9 +4,8 @@
 ## Building
 
 
-I wrote multiple Cython modules:
-* one implementing the Fast Sweeping Method to solve the Eikonal equation to obtain a geodesic distance map on a grid (it is useful for modelling the crowd congestion problem)  
-* one implementing a message-passing algorithm to compute the contraction by the Gibbs kernel (see report)
+I wrote multiple Cython modules for performance-critical code, such as computing solutions to the Eikonal equation or message-passing for computing the multi-marginal tensor contraction.
+
 Build it using
 ```bash
 python setup.py build_ext --inplace
