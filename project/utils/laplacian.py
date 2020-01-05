@@ -1,6 +1,5 @@
-"""Laplacian on domains represented by rectangular grids
-with masks, implemented using finite differences and no-flux boundary
-condition."""
+"""Laplacian on domains represented by rectangular grids with masks,
+implemented using finite differences and no-flux boundary condition."""
 import numpy as np
 from numpy import ndarray
 import scipy.sparse as sps
@@ -8,6 +7,12 @@ import scipy.sparse as sps
 
 def noflux_laplacian_2d(mask: ndarray, dx: float, dy: float):
     """Compute array of stencils for the Laplacian matrix.
+    
+    Args:
+        mask (ndarray): mask[i,j] indicates the point (i,j) is outside
+        of the domain.
+        dx (float)
+        dy (float)
     
     Returns:
         arr (ndarray): `arr[i, j]` contains the stencil weights
@@ -27,37 +32,23 @@ def _fill_masked_stencil(mask: ndarray, i: int, j: int, dx, dy, stencil):
     # stencil: 0 center, 1 left, 2 right, 3 up, 4 down
     nx, ny = mask.shape
     neigh = _get_neighbors(mask, i, j)
-    # print("Neighbors of", (i,j),"\t",neigh, end=' ')
     
-    stencil[0] = -2./dx**2 - 2./dy**2
-    stencil[1] = 1./dx**2  # left
-    stencil[2] = 1./dx**2  # right
-    stencil[3] = 1./dy**2  # up
-    stencil[4] = 1./dy**2  # down
+    ref_weights = [1./dx**2, 1./dx**2, 1./dy**2, 1./dy**2]
     
     # Edge is boundary when mask value is different from neighbor
     # in that case impose Neumann boundary condition
     # on the edge
-    if not neigh[0]:
-        # left edge crosses boundary
-        stencil[2] += stencil[1]
-        stencil[1] = 0
-    if not neigh[1]:
-        # right edge crosses boundary
-        stencil[1] += stencil[2]
-        stencil[2] = 0
-    if not neigh[2]:
-        # up node crosses boundary
-        stencil[4] += stencil[3]
-        stencil[3] = 0  # kill up edge
-    if not neigh[3]:
-        # down node crosses boundary
-        stencil[3] += stencil[4]
-        stencil[4] = 0  # kill down edge
-    # print("stencil:", stencil/1000)
+    num_neighbors = neigh.sum()
+    neigh_idx = np.where(neigh == 1)[0]
+    # print("Neighbors:", neigh, "idx: %s" % neigh_idx)
+    
+    stencil[0] = -sum(ref_weights[i] for i in neigh_idx)
+    for j in neigh_idx:
+        stencil[j+1] = ref_weights[j]
+    assert stencil.sum() == 0
 
 
-def _get_neighbors(mask: ndarray, i: int, j: int):
+def _get_neighbors(mask: ndarray, i: int, j: int) -> ndarray:
     nx, ny = mask.shape
     neigh = np.ones((4,), dtype=int)
     if i==0 or (i > 0 and mask[i-1, j] != mask[i, j]):
