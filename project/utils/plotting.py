@@ -35,13 +35,15 @@ def send_zero_transparent(a: ndarray):
     return res
 
 
-def hilbert_plot(hmetric: ndarray, thresh, sigma: float=1.):
+def hilbert_plot(hmetric: ndarray, thresh=None, sigma: float=1., title=None):
     fig = plt.figure(figsize=(4, 4))
 
     plt.plot(hmetric, lw=1.2)
     plt.yscale("log")
-    plt.title("Hilbert metric $d_{\mathcal H}$ ($\\eta=%.2e$, $\\sigma=%.3f$)"
-              % (thresh, sigma))
+    if title is None:
+        title = ("Hilbert metric $d_{\mathcal H}$ ($\\eta=%.2e$, $\\sigma=%.3f$)"
+                 % (thresh, sigma))
+    plt.title(title)
     plt.xlabel("Iteration no. $n$")
     fig.tight_layout()
     return fig

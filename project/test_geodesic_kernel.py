@@ -44,7 +44,7 @@ init_distrib[mask] = 0.
 init_distrib /= init_distrib.sum()
 
 result = [init_distrib]
-result.append(gk(result[-1]).reshape(nx, ny))
+result.append(gk(result[-1]))
 
 plt.subplot(1, 2, 1)
 plt.imshow(init_distrib, cmap=plt.cm.Blues, extent=extent, origin='lower')

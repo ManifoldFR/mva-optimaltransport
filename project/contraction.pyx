@@ -33,17 +33,29 @@ cdef class FactoredKernel(KernelOp):
 
 
 cdef class GeodesicKernel(KernelOp):
-    cdef laplacian
-    cdef solver
+    cdef public laplacian
+    cdef public solver
     cdef size_t num_steps
+    cdef size_t nx
+    cdef size_t ny
 
     def __init__(self, ndarray mask, double dx, double dy, double gamma, size_t L=10):
-        cdef size_t nx = mask.shape[0]
-        cdef size_t ny = mask.shape[1]
-        cdef ndarray mat = laplacian.noflux_laplacian_2d(mask, dx, dy).reshape(nx*ny, 5) 
-        self.laplacian = laplacian.assemble_matrix(mat, nx, ny)
+        """Geodesic distance kernel, inspired by Peyré "Entropic Wasserstein
+        Gradient Flows" [2015]. Applies to a state vector `x` by integrating the heat equation
+        starting with initial state `x` for a given number of time steps up to a given time.
+        
+        Args:
+            mask: domain obstacle mask to define the Laplacian operator
+            gamma: integration max time
+
+        """
+        self.nx = mask.shape[0]
+        self.ny = mask.shape[1]
+        cdef ndarray mat = laplacian.noflux_laplacian_2d(
+            mask, dx, dy).reshape(self.nx*self.ny, 5)
+        self.laplacian = laplacian.assemble_matrix(mat, self.nx, self.ny)
         self.num_steps = L
-        A_ = sps.identity(nx*ny) - gamma / L * self.laplacian
+        A_ = sps.identity(self.nx*self.ny) - gamma / L * self.laplacian
         A_ = A_.tocsc()
         self.solver = splin.factorized(A_)
 
@@ -51,7 +63,7 @@ cdef class GeodesicKernel(KernelOp):
         cdef ndarray z = x.copy().ravel()
         for i in range(self.num_steps):
             z[:] = self.solver(z)
-        return z
+        return z.reshape(self.nx, self.ny)
 
 
 cpdef ndarray[double] compute_message(list arrs, size_t idx, KernelOp op):

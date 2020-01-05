@@ -246,6 +246,9 @@
 	\begin{itemize}
 		\item[\textbullet] framework of paper works on infinite domain $\RR^d$ $\rightarrow$ how to handle finite $\Omega$?
 		\item[\textbullet] integral $\calI_k$ becomes \textit{large} sum over multi-index $(i_0,\ldots,i_N)$
+		\[
+			\sum_{i_0,\ldots,i_N} \bfR_i \prod_{s=0}^N a_{i_s}
+		\]
 		\begin{itemize}
 			\item[$\rightarrow$] \redfont complexity $\calO(M^N)$
 		\end{itemize}
@@ -253,11 +256,11 @@
 	
 \end{frame}
 
-\begin{frame}
+\begin{frame}[allowframebreaks]
 	Handling finite domain $\rightarrow$ for instance $\Omega = [0,1]^2$ and cut-off kernel $\bfR$ (implied in article).
 	{\redfont $\rightarrow$ might be insufficient}
 	
-	Large sum-products: exploit structure of Wiener measure $\bfR$
+	Large sum-product: exploit structure of Wiener measure $\bfR$
 	\[
 		\bfR_i = \prod_{k<N} P_h(x_{i_{k+1}} - x_{i_k})
 	\]\pause
@@ -268,18 +271,25 @@
 		\mathbf{A}_{i_k} \mathbf{B}_{i_k}
 		\]
 		where $\mathbf{A} = \bfP^T(a_{k-1} \odot \bfP^T(a_{k-2}\odot\cdots))$ and $\mathbf{B} = \bfP(a_{k+1} \odot \bfP (a_{k+2}\odot\cdots))$
-		\item[$\rightarrow$] {\greenfont complexity reduced to $\calO(NM^3)$!}
+		\item[$\rightarrow$] {\boldmath\bfseries\greenfont complexity reduced to $\calO(NM^3)$!}
 	\end{itemize}
-	\pause
-	
-	\textbf{Total algorithm complexity:} $\calO(K N^2 M^3)$ where $K$ is number of Sinkhorn iterates.
+\end{frame}
+
+\begin{frame}
+	\textbf{Total algorithm complexity:} 
+	\[
+		\calO(K N^2 M^3)
+	\]
+	where $K$ is number of Sinkhorn iterates. If $\bfP$ can be factorized over $\RR^d$ $\rightarrow$ get further speedup.
 	
 \end{frame}
 
 
 \section{Numerical results}
 
-\begin{frame}
+\begin{frame}{Implementation}
+	
+	Built a full implementation in Python \& Cython\footnote{\url{https://github.com/ManifoldFR/mva-optimaltransport/tree/master/project}}.
 	
 	To measure convergence, we use the \textbf{\bluefont Hilbert metric} between two iterates $a^{(n)}$ and $a^{(n+1)}$
 	\begin{equation}
@@ -288,6 +298,11 @@
 		d_\calH(a_k^{(n)}, a_k^{(n+1)})
 	\end{equation}
 	where $d_\calH(u, v) = \| \log(u) - \log(v)\|_V$, $\|z\|_V = \max(z) - \min(z)$.
+	
+	\textbf{Separable heat kernel:} Sinkhorn iterates run in time
+	\[
+		\calO(KN^2 M^{3/2})
+	\]
 \end{frame}
 
 
@@ -309,7 +324,10 @@
 	
 	\framebreak
 	
+	Design $\Psi$ to be shortest-time distance to target (solve over $\Omega$ using Eikonal equation $|\nabla u| = 1/f$).
+	
 	\begin{figure}
+		\centering
 		\begin{subfigure}{.45\linewidth}
 			\includegraphics[width=\linewidth]{../project/images/multimarg_room1/room_setup.pdf}
 		\end{subfigure}~
@@ -324,7 +342,7 @@
 \begin{frame}
 	
 	\includegraphics[width=\linewidth]{../project/images/multimarg_room1/multimarg_transport.pdf}
-	Grid $M=101^2$. CPU time: $\sim 13$ seconds.
+	Grid $M=101^2$. Convergence threshold $\eta = 10^{-8}$. CPU time: $\sim 13$ seconds.
 \end{frame}
 
 \begin{frame}
@@ -349,18 +367,61 @@
 
 
 \begin{frame}
-	
+	\begin{figure}
 	\includegraphics[width=\linewidth]{../project/images/multimarg_room3/multimarg_transport.pdf}
-	Grid $M=101^2$. CPU time: $\sim 16$ seconds.
-	{\redfont Qualitatively not terrible.}
+	\caption{Grid $M=101^2$. Convergence threshold $\eta = 10^{-8}$. CPU time: $\sim 16$ seconds.
+	{\bfseries\redfont Qualitatively not terrible.}}	
+	\end{figure}
+\end{frame}
+
+\begin{frame}{Conclusion on results}
+	
+	Computational time is \textit{\greenfont very good}: Hilbert metric converges in $K = \calO(|{\log(\eta)}|)$ iterations and CPU time low.
+	
+	Last results are \textbf{problematic}: the agent mass ``ghosts" through the domain boundary.\\
+	$\rightarrow$ maybe \textbf{use other kernel}?
+	
 \end{frame}
 
 
+\begin{frame}{Conclusion -- possible extension}
+	
+	
+	\textbf{Suggestion:} change heat kernel $\bfP$ to something appropriate for non-convex $\Omega$ or Riemannian manifolds based on geodesic distance. See \textcite{peyr2015entropic}.
+	
+	Geodesic kernel $\boldsymbol{\xi}$ on $\calM$ operates as
+	\[
+		\boldsymbol{\xi}x =
+		\left(I - \frac{t}{L}\hat{\Delta}_\calM \right)^{-L}x
+	\]
+	where $\hat{\Delta}_\calM$ discrete Laplacian on $\calM$. Typically \textbf{not} separable $\rightarrow$ expect slower computation\ldots~(leverage sparse matrices)
+	
+	
+\end{frame}
+
+\begin{frame}
+	\begin{figure}
+		\includegraphics[width=.85\linewidth]{../project/images/geodesic_room1/transport.pdf}
+		\caption{Application to the first room. Threshold $\eta = 10^{-3}$. CPU time: $23$ seconds. Relative $L^\infty$ constraint err $\sim 2.10^{-4}$.}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\begin{figure}
+		\includegraphics[width=.85\linewidth]{../project/images/geodesic_room3/transport.pdf}
+		\caption{Application to room 3. Threshold $\eta = 10^{-3}$. CPU time: $30$ seconds. Relative $L^\infty$ constraint err $\sim 10^{-4}$. {\greenfont\bfseries Much better.}}
+	\end{figure}
+\end{frame}
+	
+
 \begin{frame}{Conclusion}
 	
-	Last results are problematic: the agent mass ``ghosts" through the domain boundary.
+	Theoretical justification for geodesic heat kernel? Does it replace Euclidean Wiener measure on $C([0,T], \RR^d)$?
+	\begin{itemize}
+		\item[$\rightarrow$] do results of \textcite{benamou2018entropy} extend?
+		\item[$\rightarrow$] need to extend theoretical framework to Riemannian manifolds
+	\end{itemize}
 	
-	\textbf{Suggested extension:} change heat kernel $\bfP$ to something adapted to other $\Omega$ such as non-convex sets or Riemannian manifolds, based on geodesic distance. See \textcite{peyr2015entropic}.
 	
 	Other kinds of problems not covered: non-quadratic Hamiltonians, optimal time problems\ldots~$\rightarrow$ require Lagrangian formulations
 	
