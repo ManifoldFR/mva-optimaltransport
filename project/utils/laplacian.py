@@ -35,13 +35,12 @@ def _fill_masked_stencil(mask: ndarray, i: int, j: int, dx, dy, stencil):
     
     ref_weights = [1./dx**2, 1./dx**2, 1./dy**2, 1./dy**2]
     
-    # Edge is boundary when mask value is different from neighbor
-    # in that case impose Neumann boundary condition
-    # on the edge
     num_neighbors = neigh.sum()
     neigh_idx = np.where(neigh == 1)[0]
     # print("Neighbors:", neigh, "idx: %s" % neigh_idx)
     
+    # Compute the Laplacian stencil weights as in Graph Laplacians
+    # Neumann boundary condition is natural
     stencil[0] = -sum(ref_weights[i] for i in neigh_idx)
     for j in neigh_idx:
         stencil[j+1] = ref_weights[j]
@@ -80,5 +79,5 @@ def assemble_matrix(mat, nx, ny):
         mat_sparse (csr_matrix): sparse Laplacian matrix
     """
     offsets = [0, ny, -ny, -1, 1]
-    mat_sparse = sps.spdiags(mat.T, offsets, nx*ny, nx*ny, format='csr')
+    mat_sparse = sps.spdiags(mat.T, offsets, nx*ny, nx*ny)
     return mat_sparse
