@@ -1,20 +1,26 @@
-"""No-flux Laplacian on domains represented by rectangular grids
-with masks."""
+"""Laplacian on domains represented by rectangular grids
+with masks, implemented using finite differences and no-flux boundary
+condition."""
 import numpy as np
 from numpy import ndarray
 import scipy.sparse as sps
 
 
-def noflux_laplacian_2d(mask: ndarray,
-                        dx: float, dy: float):
+def noflux_laplacian_2d(mask: ndarray, dx: float, dy: float):
+    """Compute array of stencils for the Laplacian matrix.
+    
+    Returns:
+        arr (ndarray): `arr[i, j]` contains the stencil weights
+        of the Laplacian at point (i,j).
+    """
     nx, ny = mask.shape
-    matrx = np.zeros((nx, ny, 5))
+    arr = np.zeros((nx, ny, 5))
     # stencil: 0 center, 1 left, 2 right, 3 up, 4 down
     for i in range(nx):
         for j in range(ny):
-            _fill_masked_stencil(mask, i, j, dx, dy, matrx[i, j])
+            _fill_masked_stencil(mask, i, j, dx, dy, arr[i, j])
 
-    return matrx
+    return arr
 
 
 def _fill_masked_stencil(mask: ndarray, i: int, j: int, dx, dy, stencil):
@@ -69,12 +75,19 @@ def _get_neighbors(mask: ndarray, i: int, j: int):
     return neigh
 
 
-def assemble_matrix(mat_rshpd, nx, ny):
+def assemble_matrix(mat, nx, ny):
     """
+    Assemble the 2D Laplacian matrix as
+    SciPy sparse array from from the array of stencils.
     
     Args:
-        mat_rshpd: flattened array of stencils
+        mat : flattened array of stencils
+        nx (int)
+        ny (int)
+    
+    Returns:
+        mat_sparse (csr_matrix): sparse Laplacian matrix
     """
     offsets = [0, ny, -ny, -1, 1]
-    mat_sparse = sps.spdiags(mat_rshpd.T, offsets, nx*ny, nx*ny, format='csr')
+    mat_sparse = sps.spdiags(mat.T, offsets, nx*ny, nx*ny, format='csr')
     return mat_sparse
