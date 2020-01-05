@@ -10,8 +10,8 @@ from scipy.sparse import linalg
 
 
 plt.rcParams['figure.figsize'] = (4, 4)
-plt.rcParams['figure.dpi'] = 100
-plt.rcParams["savefig.dpi"] = 160
+plt.rcParams['figure.dpi'] = 90
+plt.rcParams["savefig.dpi"] = 90
 plt.rcParams['text.usetex'] = True
 
 
@@ -26,7 +26,6 @@ yar = np.linspace(0, ymax, ny)
 xg, yg = np.meshgrid(xar, yar)
 
 extent = [0, xar.max(), 0, yar.max()]
-
 
 mask = np.zeros((nx, ny), dtype=bool)
 b_size = 2

@@ -8,6 +8,11 @@ import numpy as np
 cimport numpy as np
 from numpy cimport ndarray
 
+import scipy.sparse as sps
+from scipy.sparse import linalg as splin
+
+from utils import laplacian
+
 
 cdef class KernelOp:
     cdef ndarray[double] call(self, ndarray x):
@@ -25,6 +30,28 @@ cdef class FactoredKernel(KernelOp):
 
     cdef ndarray[double] call(self, ndarray x):
         return np.dot(self.K2 @ x, self.K1)
+
+
+cdef class GeodesicKernel(KernelOp):
+    cdef laplacian
+    cdef solver
+    cdef size_t num_steps
+
+    def __init__(self, ndarray mask, double dx, double dy, double gamma, size_t L=10):
+        cdef size_t nx = mask.shape[0]
+        cdef size_t ny = mask.shape[1]
+        cdef ndarray mat = laplacian.noflux_laplacian_2d(mask, dx, dy).reshape(nx*ny, 5) 
+        self.laplacian = laplacian.assemble_matrix(mat, nx, ny)
+        self.num_steps = L
+        A_ = sps.identity(nx*ny) - gamma / L * self.laplacian
+        A_ = A_.tocsc()
+        self.solver = splin.factorized(A_)
+
+    cdef ndarray[double] call(self, ndarray x):
+        cdef ndarray z = x.copy().ravel()
+        for i in range(self.num_steps):
+            z[:] = self.solver(z)
+        return z
 
 
 cpdef ndarray[double] compute_message(list arrs, size_t idx, KernelOp op):

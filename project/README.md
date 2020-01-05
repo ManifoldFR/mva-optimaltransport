@@ -13,7 +13,7 @@ python setup.py build_ext --inplace
 
 ## Laplacian
 
-Idea for an extension: replace the heat kernel in the Wiener measure by a geodesic distance kernel approached using the Laplacian operator.
+Idea for an extension: replace the heat kernel in the Wiener measure by a geodesic distance kernel approached using the Laplacian operator. Functions for computing the Laplacian as a sparse matrix are provided in the module [utils/laplacian.py](utils/laplacian.py).
 
 ![](images/laplacian_example.png)
 
