@@ -172,17 +172,37 @@
 \subfile{parts/examples.tex}
 
 
-\section{Conclusion}
+\section{Conclusion and further work}
 
 The variational mean-field game framework and its OT regularization introduced by \textcite{benamou:hal-01295299,benamou2018entropy} provide useful computational approaches: it shows that some MFGs can be written as optimization problems, and approached by entropic transport problems that can be solved quickly using Sinkhorn scaling.
 
 However, the entropic transport point of view has some \textbf{limitations} so far: entropy minimization approaches for optimal time problems (see \cref{rem:SmartPotential}), ergodic problems and non-quadratic Hamiltonians have not been derived yet. Lagrangian formulations of these problems connecting them to OT are required.
 
+\paragraph{Further work: Domain topology and heat kernel}\label{sec:ExtensionTopologyHeatKernel} Extensions to non-convex domains and manifolds might be necessary to handle cases where imposing zero-mass constraints are insufficient and still produce non-physical behavior (as in the crowd motion example). 
+For complicated domains such as the second room \cref{fig:Room3} we get non-physical behavior where the agents pass through walls. The domain $\Omega$ in that example is suppoed to contain the obstacles and it is non-convex: obviously the Euclidean heat kernel $P_t$ is \textit{not} the exact 2-marginal of the Wiener measure, which justifies looking at using a more appropriate kernel. As a first step, we propose the following approach where we change out heat kernels $\bfP$.
+
+We take inspiration from \textcite{peyr2015entropic}, which discusses an OT approach to solving PDEs using JKO flows, eventually on non-convex subdomains of $\RR^d$ and Riemannian manifolds using a \textit{geodesic distance} as a ground cost. The distance kernel $\xi(x,y) = \exp(-d_\calM(x,y)/\tau)$ is approached by solving the heat equation with a discrete Laplacian operator.
+We have implemented the approach, leading to the results in \cref{fig:GeodesicKernelRoom3Example} when applied to the complicated second room with $N=10$ time steps and grid size $M=101\times 101$. The CPU time was $30$ seconds and the relative $L^\infty$ constraint error was $\sim 10^{-4}$. We obtain qualitatively much better results when compared with the Euclidean heat kernel \cref{fig:NMargEx3}.
+
+Further work should be done in this direction: \textcite{benamou2018entropy} could be extended with results generalized to manifolds.
 
 
-\paragraph{Domain topology and heat kernel} If we want to generalize the approach to more generic domains (non-convex sets, Riemannian manifolds), the Wiener measure based on the heat kernel \eqref{eq:StandardDHeatKernel} in $\RR^d$ might not be appropriate: \textcite[p.~5]{benamou2018entropy} remark that this kernel is defined for the Laplacian operator $\frac{1}{2}\Delta$, which is the infinitesimal generator of the standard Wiener process on $\RR^d$.
-For complicated domains such as the second example room of \cref{fig:Room3}, which is a non-convex domain, the problems observed in the results \cref{fig:Room3Results} would justify looking at using a more appropriate kernel.
-\textcite{peyr2015entropic}, which also looks at crowd motion, discusses kernels based on geodesic distances $d(x,y)$ on Riemannian manifolds which are supposed to be more appropriate than the Euclidean distance: they are then applied to solving PDEs using JKO flows.
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}[c]{.4\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/geodesic_room3/congestion_plot.pdf}
+		\caption{Congestion plot for room 3 with the geodesic kernel.}
+	\end{subfigure}~
+	\begin{subfigure}[c]{.4\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/geodesic_room3/hilbert_convergence.png}
+		\caption{Convergence of the Hilbert metric.}
+	\end{subfigure}
+	\begin{subfigure}[c]{.8\linewidth}
+		\includegraphics[width=\linewidth]{../project/images/geodesic_room3/transport.pdf}
+		\caption{MFG evolution using the geodesic heat kernel.}
+	\end{subfigure}
+	\caption{Solution of the crowd motion MFG in the more complex room 2 using the geodesic heat kernel. Hilbert convergence threshold $\eta = 10^{-3}$.}\label{fig:GeodesicKernelRoom3Example}
+\end{figure}
 
 
 

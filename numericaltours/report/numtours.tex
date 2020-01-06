@@ -1,0 +1,601 @@
+\documentclass{article}
+
+\usepackage{subfiles}
+\usepackage[a4paper,hmargin=2.6cm,vmargin=3.6cm]{geometry}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{dsfont,mathrsfs}
+\usepackage[dvipsnames]{xcolor}
+
+\usepackage[
+ruled,vlined,
+linesnumbered
+]{algorithm2e}
+
+\usepackage{amsthm}
+\usepackage[
+framemethod=TikZ
+]{mdframed}
+
+\usepackage{verbatim}
+
+\usepackage{hyperref,cleveref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+
+\setlist{itemsep=0pt,topsep=0pt}
+
+\usepackage{csquotes}
+\usepackage[
+sorting=none,
+minnames=1,
+maxcitenames=2,
+backend=biber
+]{biblatex}
+
+\addbibresource{../bibliography/references.bib}
+
+%% Hyperref %%
+
+\hypersetup{
+	colorlinks,
+	citecolor=Green
+}
+
+\crefalias{prop}{proposition}
+
+%%% DEFINE MACROS %%%
+
+%% Math %%
+
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\TT}{\mathbb{T}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\BB}{\mathbb{B}}
+\newcommand{\WW}{\mathbb{W}}
+\newcommand{\EE}{\mathbb{E}}
+\newcommand{\PP}{\mathbb{P}}
+
+\newcommand{\bfR}{\mathbf{R}}
+\newcommand{\bfP}{\mathbf{P}}
+
+
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calE}{\mathcal{E}}
+\newcommand{\calI}{\mathcal{I}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calK}{\mathcal{K}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calO}{\mathcal{O}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calW}{\mathcal{W}}
+\newcommand{\calX}{\mathcal{X}}
+
+\newcommand{\suchthat}{\mathrm{s.t.}}
+
+\renewcommand{\phi}{\varphi}
+\renewcommand{\epsilon}{\varepsilon}
+
+\DeclareMathOperator{\divg}{div}
+\DeclareMathOperator{\Ent}{Ent}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+
+\DeclareMathOperator{\KL}{KL}
+\DeclareMathOperator{\proj}{proj}
+\DeclareMathOperator{\prox}{prox}
+\DeclareMathOperator{\diag}{diag}
+
+\numberwithin{equation}{section}
+
+%% Colors %%
+
+\colorlet{lightblue}{RoyalBlue!13!white}
+\colorlet{midblue}{RoyalBlue!70}
+\colorlet{midgreen}{OliveGreen!65}
+\colorlet{darkred}{Red!90!Black}
+
+\newcommand{\redfont}{\color{darkred}}
+\newcommand{\bluefont}{\color{RoyalBlue}}
+\newcommand{\greenfont}{\color{Green!90!black}}
+
+%% THEOREM ENVS %%
+
+\mdfsetup{
+	outerlinewidth=1pt,
+	innertopmargin=0cm,
+}
+
+%\newtheorem{prop}{Proposition}
+\newmdtheoremenv[
+hidealllines=true,
+leftline=true,
+linecolor=midblue,
+backgroundcolor=RoyalBlue!3,
+]{prop}{Proposition}
+
+
+\theoremstyle{definition}
+\newmdtheoremenv[
+hidealllines=true,
+leftline=true,
+linecolor=Red!70,
+]{remark}{Remark}
+
+%% TITLE, AUTHOR %%
+
+\author{
+	Wilson Jallet\\
+	\textit{École polytechnique}
+}
+\title{
+	{\Large\sffamily Computational Optimal Transport}\\
+	Numerical Tours}
+
+\begin{document}
+\maketitle
+
+\section{Linear Programming}
+\subsection{OT of distributions}
+
+We use the following dataset (a circle inscribed within three arcs of another circle):
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=.4\linewidth]{tp1/output_15_0.png}
+	\caption{}
+\end{figure}
+
+This yields the transport plan in \cref{fig:output280}, as well as the connection defined by the optimal coupling \cref{fig:output300}.
+\begin{figure}[!h]
+	\centering
+	\begin{subfigure}{.44\linewidth}
+		\centering
+		\includegraphics[width=.48\linewidth]{tp1/output_28_0}
+		\caption{}
+		\label{fig:output280}
+	\end{subfigure}
+	\begin{subfigure}{.44\linewidth}
+		\centering
+		\includegraphics[width=.48\linewidth]{tp1/output_30_0.png}
+		\caption{}\label{fig:output300}
+	\end{subfigure}
+	\caption{}
+\end{figure}
+
+
+\subsection{Displacement interpolation}
+
+Given the optimal transport plan $\bfP^\star$ we get the $W_2$-geodesic path $(\mu_t)_t$ as
+\[
+	\mu_t = \sum_{i,j} \bfP^\star_{i,j} \delta_{(1-t)x_i + ty_j}
+\]
+Applied on our dataset, we get the following barycenter distributions \cref{fig:output350}:
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.8\linewidth]{tp1/output_35_0}
+	\caption{}
+	\label{fig:output350}
+\end{figure}
+
+
+\subsection{Optimal Assignment}
+
+We adapt our previous dataset by adding a few points inside of the inner blue circle. In this case the OT plan is a permutation matrix $\bfP^\star = P_{\sigma^\star}$ and the heatmap of the matrix \cref{fig:output510} has two colors.
+\begin{figure}[!h]
+	\begin{subfigure}[t]{.33\linewidth}
+		\includegraphics[width=\linewidth]{tp1/output_47_0.png}
+		\caption{Our dataset.}
+	\end{subfigure}~
+	\begin{subfigure}[t]{.33\linewidth}
+		\includegraphics[width=\linewidth]{tp1/output_51_0.png}
+		\caption{Optimal transport plan $\bfP^\star$.}\label{fig:output510}
+	\end{subfigure}~
+	\begin{subfigure}[t]{.33\linewidth}
+		\includegraphics[width=\linewidth]{tp1/output_53_0.png}
+		\caption{Optimal Assignment plan $x_i = y_{\sigma^\star(j)}$.}\label{fig:output530}
+	\end{subfigure}
+	\caption{}\label{fig:OptimalAssignment}
+\end{figure}
+
+
+\section{Entropic Regularization of OT}
+
+\subsection{Transport Between Point Clouds}
+
+\paragraph{Exercise 1.} We use the following point cloud data:
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.5\linewidth]{tp2/output_12_0}
+	\caption{}
+	\label{fig:output120}
+\end{figure}\\
+The optimal transport plan should have interesting structure: we see that in the results.
+\begin{figure}[!h]
+	\centering
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{tp2/output_33_1.png}\caption{Convergence of the $L^1$ error on the marginals.}
+	\end{subfigure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{tp2/output_37_1.png}\caption{Optimal transport plan.}
+	\end{subfigure}
+	\caption{Convergence and optimal transport plan for regularization stength $\epsilon = 0.01$.}
+\end{figure}
+
+It holds that
+\[
+	P^{(l+1)}\mathds{1} = \diag{u^{(l+1)}}Kv^{(l+1)}
+	= \frac{a}{Kv^{()}}\odot Kv^{(l+1)}
+\]
+which allows to compute the $L^1$ error efficiently.
+
+\paragraph{Exercise 2.} We compute the regularized OT for different values of $\epsilon \in \{0.002, 0.004, 0.005, 0.01, 0.1, 0.3\}$.
+\begin{figure}[!h]
+	\includegraphics[width=\linewidth]{tp2/output_41_0.png}\caption{OT plans for varying $\epsilon$.}
+\end{figure}
+The smallest tested value for which there was no underflow is $\epsilon_{\min} = 4.10^{-3}$.
+\begin{figure}[!h]
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.7\linewidth]{tp2/output_44_1}
+		\caption{Optimal transport plan $\bfP^\star_\epsilon$.}
+		\label{fig:output441}
+	\end{subfigure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.7\linewidth]{tp2/output_45_0}
+		\caption{Point cloud connections for $\epsilon = 4.10^{-3}$.}
+		\label{fig:output450}
+	\end{subfigure}
+	\caption{Transport plan and connections.}
+\end{figure}
+
+
+\subsection{Transport Between Histograms}
+
+We use the following data: the marginals are a mixture of Gaussians and a mixture of Laplace distributions, displayed \cref{fig:tp2output550}. Explicitly, the unnormalized functions are
+\begin{equation}
+\begin{aligned}
+	f_1(x) &= \exp\left(-\frac{(x-1/2)^2}{2\sigma^2}\right) + 0.6\exp\left(-\frac{(x-0.65)^2}{2\sigma^2}\right)  \\
+	f_2(x) &= 0.4 \exp\left(-\frac{|x-0.2|}\beta\right) + 0.6\exp\left(-\frac{|x-0.8|}\beta\right)
+\end{aligned}
+\end{equation}
+and for our data we use $\sigma = 0.06$, $\beta = 0.04$.
+
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=.9\linewidth]{tp2/output_55_0.png}\caption{Histograms of the marginal distributions.}\label{fig:tp2output550}
+\end{figure}
+
+\paragraph{Exercise 3.} We use the regularization strength $\epsilon = (0.03)^2$. The optimal coupling and transport map are given \cref{fig:tp2output690,fig:tp2output730}.
+\begin{figure}[!h]
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{tp2/output_69_0.png}
+		\caption{Optimal coupling between the histograms.}
+		\label{fig:tp2output690}	
+	\end{subfigure}~
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{tp2/output_73_0.png}
+		\caption{Associated transport map.}
+		\label{fig:tp2output730}	
+	\end{subfigure}
+	\caption{Coupling and transport map for $\epsilon = (0.03)^2$.}\label{fig:HistoCoupling}
+\end{figure}
+
+\paragraph{Bonus exercise.} \Cref{fig:HistoCouplingLowerReg} shows the coupling and transport map for a lower regularization strength $\epsilon$.
+\begin{figure}[!h]
+	\begin{subfigure}[t]{.49\linewidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{tp2/output_79_0.png}
+		\caption{Optimal coupling between the histograms.}
+		\label{fig:tp2output790}	
+	\end{subfigure}~
+	\begin{subfigure}[t]{.49\linewidth}
+		\centering
+		\includegraphics[width=.8\linewidth]{tp2/output_80_0.png}
+		\caption{Associated transport map.}
+		\label{fig:tp2output800}	
+	\end{subfigure}
+	\caption{Coupling and transport map for $\epsilon = (0.03)^2$.}\label{fig:HistoCouplingLowerReg}
+\end{figure}
+
+
+
+\subsection{Wasserstein barycenters}
+
+We use the data \cref{fig:tp2output1050} and regularization parameter $\epsilon = (0.04)^2$.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=.4\linewidth]{tp2/output_105_0.png}\caption{Bitmap image data.}
+	\label{fig:tp2output1050}
+\end{figure}
+
+\paragraph{Exercise 4.} \Cref{fig:BregmanAlgo} shows the result.
+\begin{figure}[!h]
+	\centering
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp2/output_129_0}
+		\caption{}
+		\label{fig:output1290}
+	\end{subfigure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp2/output_131_0}
+		\caption{}
+		\label{fig:output1310}
+	\end{subfigure}
+	\caption{Convergence and result of the Bregman algorithm to compute the Wasserstein barycenters of the images in \cref{fig:tp2output1050}.}\label{fig:BregmanAlgo}
+\end{figure}
+
+\paragraph{Exercise 5.} We compute Wasserstein barycenters for bilinear interpolation weights $t,s\in \{0, 0.25, 0.5, 0.75, 1.0\}$ -- see \cref{fig:BarycenterMosaic}.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=\linewidth]{tp2/output_136_0.png}\caption{Set of Wasserstein barycenters.}
+	\label{fig:BarycenterMosaic}
+\end{figure}
+
+
+\clearpage
+
+\section{Advanced Topics on Sinkhorn}
+
+\subsection{Log-domain Sinkhorn}
+
+\paragraph{Exercise 1.} We use the dataset defined in \cref{fig:tp3output80}.
+\begin{figure}[!h]
+	\centering
+	\begin{subfigure}[t]{.49\linewidth}
+		\centering
+		\includegraphics[width=0.7\linewidth]{tp3/output_8_0}
+		\caption{Point cloud data.}\label{fig:tp3output80}
+	\end{subfigure}~
+	\begin{subfigure}[t]{.49\linewidth}
+		\centering
+		\includegraphics[width=0.8\linewidth]{tp3/output_19_0.png}
+		\caption{Convergence of the log-domain Sinkhorn for regularization strength $\epsilon = 10^{-2}$.}
+		\label{fig:tp3output190}
+	\end{subfigure}
+	\caption{}
+\end{figure}
+
+\paragraph{Exercise 2.} We study the convergence of the Sinkhorn algorithm in log-domain for regularization parameters $\epsilon \in \{0.1, 0.05, 0.01, 0.01\}$. See \cref{fig:tp3output210}. Lowering regularization values can decrease convergence speed significantly.
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{tp3/output_21_0.png}
+	\caption{Convergence of log-domain Sinkhorn for multiple regularization parameters.}
+	\label{fig:tp3output210}
+\end{figure}
+
+
+
+\subsection{Wasserstein Flows for Matching}
+
+\begin{figure}[!h]
+	\begin{subfigure}{.4\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{tp3/output_30_0}
+		\caption{Lagrangian gradients of the energy functional $\calE(z)$ at the distribution $z$.}
+		\label{fig:tp3output300}
+	\end{subfigure}
+	\begin{subfigure}{.59\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{tp3/output_36_0}
+		\caption{Evolution of the iterate distribution $z^{(t)}$ along the gradient steps.}
+		\label{fig:tp3output360}
+	\end{subfigure}
+	\caption{Illustration of the Wasserstein flow technique for non-parametric fitting of distributions.}
+\end{figure}
+
+
+\paragraph{Exercise 4.} \Cref{fig:FitEvolutionSinkhornScore} shows the evolution of the fit of the distribution using the standard Sinkhorn score
+\[
+	\calE(z) = W_\epsilon\left(\frac{1}{n}\sum_{i=1}^n \delta_{z_i}, \beta\right).
+\]
+with $20$ iterations, gradient step size $\tau = 0.07$, and varying regularization strengths 
+\[
+	\epsilon = 0.01, 0.02, 0.05, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8
+\]
+The score value as a function of $\epsilon$ is given \cref{fig:SinkhornScoreEpsilon}. As the regularization strength increases, the fit worsens.
+
+
+\subparagraph{Sinkhorn divergence score} The Sinkhorn divergence score is given by
+\[
+	\calE(z) = W_\epsilon\left(\gamma(z), \beta\right) - \frac{1}{2}W_\epsilon(\gamma(z), \gamma(z))
+	-\frac{1}{2}W_\epsilon(\beta, \beta)
+\]
+where $\gamma(z) = \frac{1}{n}\sum_{i=1}^n \delta_{z_i}$. The gradient works out as
+\[
+	\nabla\calE(z) = (\bfP_z^\star+\bfP_zz^{\star,T})z - \bfP^\star y
+\]
+where $\bfP_z^\star$ solves $W_\epsilon(\gamma(z),\gamma(z))$ and $\bfP^\star$ solves $W_\epsilon(\gamma(z),\beta)$. See \cref{fig:FitEvolutionSinkhornDivg,fig:SinkhornDivgEpsilonObj} for results: the Sinkhorn divergence has better behavior for increasing $\epsilon$.
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_0}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_1}
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_2}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_3}
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_4}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_5}
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_6}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_7}
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_8}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_9}
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_10}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_41_11}
+	\caption{Evolution of the fit with the standard Sinkhorn score. Regularization strength increases from left to right, top to bottom.}
+	\label{fig:FitEvolutionSinkhornScore}
+\end{figure}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=.7\linewidth]{tp3/output_42_0.png}
+	\caption{Evolution of the score $\calE(z)$ after the $20$ iterations as $\epsilon$ increases.}\label{fig:SinkhornScoreEpsilon}
+\end{figure}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{tp3/output_44_1}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_44_2}
+	\includegraphics[width=0.5\linewidth]{tp3/output_44_3}~
+	\includegraphics[width=0.5\linewidth]{tp3/output_44_4}
+	\includegraphics[width=0.5\linewidth]{tp3/output_44_5}
+	\caption{Evolution of the fit with the Sinkhorn divergence score.}
+	\label{fig:FitEvolutionSinkhornDivg}
+\end{figure}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=.7\linewidth]{tp3/output_45_0.png}
+	\caption{Evolution of the Sinkhorn divergence score as $\epsilon$ increases.}\label{fig:SinkhornDivgEpsilonObj}
+\end{figure}
+
+
+
+\subsection{Generative model fitting}
+
+
+\paragraph{Exercise 5.} \Cref{fig:GenerativeFitting}.
+\begin{figure}[!h]
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.8\linewidth]{tp3/output_49_0}
+		\caption{Dataset.}
+		\label{fig:output490}	
+	\end{subfigure}~
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.8\linewidth]{tp3/output_57_0}
+		\caption{}
+		\label{fig:output570}
+	\end{subfigure}
+	\caption{Fitting the generative model.}\label{fig:GenerativeFitting}
+\end{figure}
+
+
+\paragraph{Exercise 6.} We define the dataset in \cref{fig:output591}.
+\begin{figure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.7\linewidth]{tp3/output_59_1}
+		\caption{Dataset}
+		\label{fig:output591}
+	\end{subfigure}~
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.8\linewidth]{tp3/output_60_0}
+		\caption{}
+		\label{fig:output600}
+	\end{subfigure}
+	\caption{Fitting the generative model on more complex data.}\label{fig:GenerativeFittingComplex}
+\end{figure}
+
+
+\clearpage
+
+\section{Semi-discrete transport}
+
+
+\paragraph{Exercise 1.} We use the data defined in \cref{fig:tp4output101}.
+\begin{figure}[!h]
+	\begin{subfigure}[t]{.49\linewidth}
+		\centering
+		\includegraphics[width=0.6\linewidth]{tp4/output_10_1}
+		\caption{Dataset: mixture of Gaussians and Laplace, and}
+		\label{fig:tp4output101}	
+	\end{subfigure}
+	\begin{subfigure}[t]{.49\linewidth}
+		\centering
+		\includegraphics[width=0.6\linewidth]{tp4/output_18_1}
+		\caption{Laguerre partition.}
+		\label{fig:tp4output181}
+	\end{subfigure}	
+	\caption{Custom data and corresponding Laguerre cells.}
+\end{figure}
+
+\begin{figure}[!h]
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/output_21_0}
+		\caption{Laguerre cells throughout the gradient stepping.}
+		\label{fig:tp4output210}
+	\end{subfigure}~
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/output_23_1}
+		\caption{Evolution of the dual energy $\calE(f)$ throughout gradient ascent.}
+		\label{fig:output231}
+	\end{subfigure}
+	\caption{Gradient ascent.}
+\end{figure}
+
+
+
+
+\paragraph{Exercise 2.} The stochastic optimization can be sensitive to how the learning rate $\tau_t$ is chosen. \Cref{fig:TP4StochasticOptimLargeWarmup} illustrates how increasing the warmup can lead to poor convergence.
+\begin{figure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/output_33_0}
+		\caption{}
+		\label{fig:output330}
+	\end{subfigure}~
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/output_35_1}
+		\caption{}
+		\label{fig:output351}
+	\end{subfigure}
+	\caption{Stochastic optimization with the default parameters: $\tau_t = 0.1/(1+t/10)$.}
+\end{figure}
+
+\begin{figure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/stochasticoptim_l0_large.png}
+		\caption{}
+	\end{subfigure}~
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/stochastic_optim_objective_l0_large.png}
+		\caption{}
+	\end{subfigure}
+	\caption{Stochastic optimization when taking a learning rate with longer warmup $\ell_0 = 20$, so that $\tau_t = 0.1/ (1+t/20)$. Not decaying the learning rate quickly enough leads to instability and oscillations (perhaps more gradient steps would be required for convergence).}\label{fig:TP4StochasticOptimLargeWarmup}	
+\end{figure}
+
+
+
+\paragraph{Exercise 3.} \Cref{fig:OptimalQuantization} shows the result of the Lloyds algorithm on the data. The algorithm converges quickly to the criterion's optimum.
+\begin{figure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/output_43_0}
+		\caption{}
+		\label{fig:output430}
+	\end{subfigure}~
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=0.9\linewidth]{tp4/output_45_1}
+		\caption{}
+		\label{fig:output451}
+	\end{subfigure}
+	\caption{}\label{fig:OptimalQuantization}
+\end{figure}
+
+
+
+
+
+
+\end{document}

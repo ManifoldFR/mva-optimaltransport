@@ -21,7 +21,7 @@ H(\gamma | R^N) + \imath_{\rho_0}(\rho_0) + \sum_{k=1}^{N-1} F(\rho_k) + G(\rho_
 \end{equation}
 where $\imath_{\rho_0}(\mu) = +\infty$ if $\mu\neq \rho_0$ and $0$ otherwise is the convex indicatrix of the measure $\rho_0$. This is a generalized multimarginal optimal transport problem.
 
-\textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates, by using a multimarginal generalization of a result from \textcite{chizat2016scaling}:
+\textcite{benamou2018entropy} provide the corresponding dual problem involving the convex conjugates:
 \begin{equation}\label{eq:TimeDiscreteDual}
 \sup_u
 \int_{\Omega^{N+1}} \left(1-\exp\left(\oplus_{k=0}^N u_k\right)\right) \,dR^N
@@ -31,9 +31,7 @@ where the supremum is taken over $u = (u_0,\ldots,u_N) \in L^\infty(\Omega)^{N+1
 \begin{equation}
 	\gamma^* = e^{\oplus_{k=0}^N u^*_k} R^N
 \end{equation}
-
-
-\textcite{benamou2018entropy} introduce a multimarginal Sinkhorn iterative algorithm to solve the above dual problem. We rewrite it more explicitly with slightly different notations.
+The optimum satisfies a fixed-point condition which can be solved numerically using generalized Sinkhorn iterations. We rewrite it more explicitly with slightly different notations:
 
 \begin{prop}\label{algo:Sinkhorn}
 	Denote for $k=0,\ldots,N$ and $(a_j)_{j}$
@@ -84,7 +82,7 @@ The theory introduced by the paper has some limitations: for instance it only co
 
 \textcite{benamou:hal-01295299} circumvent the problem by assuming $\Omega$ is a convex domain and imposing a no-mass constraint $\rho = 0$ on a subset of obstacles $\mathscr{O} \subset \Omega$.
 
-\paragraph{Sum-product algorithm.} Denoting $\bfR \in \RR^{M^N}$ the discretization of $R^N$, integration of $a_0,\ldots,a_N\in\RR^M$ with respect to the Wiener marginal $R^N_\epsilon$ translates to
+\paragraph{Sum-product algorithm.} Denoting $\bfR \in \RR^{M^N}$ the discretization of $R^N_\epsilon$, integration of $a_0,\ldots,a_N\in\RR^M$ with respect to the Wiener marginal $R^N_\epsilon$ translates to
 \[
 	\bfR[a_0, \ldots, a_N] =
 	\sum_{i_0,\ldots,i_N} \bfR_{i_0,\ldots,i_N}\prod_{k=0}^N a_{i_k}

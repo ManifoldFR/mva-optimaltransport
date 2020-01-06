@@ -54,10 +54,10 @@ The following proposition provides the $\KL$-proximal operators for a set of con
 
 \subsubsection{Two-marginal case}
 
-We start with a very simplified approximation of the crowd displacement problem on $\Omega = [0, 1]^2$, with only two steps: the given initial distribution and the final distribution decided by the terminal penalty function $G$. 
-Thus, the agents engage in a one-round mean-field game where they are only concerned with moving to regions with lower potential $\Psi$ -- as close as possible to $\mathscr{A}$ -- whilst obeying physical constraints related to the obstacles.
+We start with a very simplified approximation of the crowd displacement problem on $\Omega = [0, 1]^2$, with only two steps: the given initial distribution and the final distribution decided by the terminal penalty $G$. 
+The agents engage in a one-round mean-field game where they are concerned with moving to regions with lower potential $\Psi$ whilst obeying physical constraints related to the obstacles.
 
-The discretized MFG problem with viscosity parameter $\epsilon = \sigma^2$ can be written as the following transport problem:
+The two-step variational MFG problem reads:
 \begin{equation}\label{eq:2MargFuzzyObstacleObj}
 \begin{aligned}
 	&\inf_\gamma{} \langle \Psi, \gamma^T\mathds{1}\rangle + \KL(\gamma | \bfR) \\
@@ -82,25 +82,25 @@ It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$. 
  
 \paragraph{Numerical experiment} We ran a numerical experiment by implementing the solutions given by \cref{thm:2MargFuzzyTarget} to the two-step MFG \eqref{eq:2MargFuzzyObstacleObj}. \Cref{fig:2MargFuzzyTransportObstacles} provides a representation of both. We also checked the results when removing the constraints: this leads to $a^*_1$ being obtainable in closed form with no iterations. We also looked at lowering the viscosity parameter $\sigma = \sqrt{\epsilon}$ (see \cref{fig:2MargFuzzyTransportRelaxedObst,fig:2MargFuzzyTransportLowVisc}). The results shown are satisfactory for the given potential $\Psi$: as expected the agents try to stay near the low-potential regions. But the results do not exactly look intuitive if we think of the problem as an exit problem: we see the need for appropriate potentials when modeling.
 
-\begin{figure}[h]
+\begin{figure}[!h]
 	\centering
-	\includegraphics[width=0.5\linewidth]{../project/images/naive_potential.png}
+	\includegraphics[width=0.46\linewidth]{../project/images/naive_potential.png}
 	\caption{Game domain $\Omega$ with set of obstacles $\mathscr{O}$ (dark grey), and contour of the potential function $\Psi$.} \label{fig:CrowdExamplePotential}	
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}[!h]
 	\centering
-	\begin{subfigure}[t]{.70\linewidth}
+	\begin{subfigure}[t]{.62\linewidth}
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_withobstacle.png}
 	\caption{Result of the transport problem with enforcement of the obstacle constraints and viscosity parameter $\sigma=1$.}\label{fig:2MargFuzzyTransportObstacles}
 	\end{subfigure}
-	\begin{subfigure}[t]{.34\linewidth}
+	\begin{subfigure}[t]{.3\linewidth}
 	\centering
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_noobstacle.png}
 	\caption{Final distribution $\rho^*_1$ without enforcing the obstacles. The mass of the distribution ``bleeds" through the obstacles. }\label{fig:2MargFuzzyTransportRelaxedObst}
 	\end{subfigure}~
-	\begin{subfigure}[t]{.34\linewidth}
+	\begin{subfigure}[t]{.3\linewidth}
 	\centering
 	\includegraphics[width=\linewidth]{../project/images/fuzzy_transport_lowvisc.png}
 	\caption{Obstacles are constrained as in \cref{fig:2MargFuzzyTransportObstacles}, but with lower viscosity.}\label{fig:2MargFuzzyTransportLowVisc}
@@ -108,13 +108,13 @@ It satisfies, as expected, that $\gamma^*_{i,j} = 0$ for all $j\in\mathscr{O}$. 
 	\caption{Numerical solution of the two-step MFG problem \eqref{eq:2MargFuzzyObstacleObj}, with a few variations.}\label{fig:2MargFuzzyTransportMarginals}
 \end{figure}
 
-\begin{remark}[A more realistic potential]\label{rem:SmartPotential}
+\begin{remark}[Better potential for the exit problem]\label{rem:SmartPotential}
 In a room evacuation scenario, for instance, agents would seek to minimize the time-to-exit: the literature shows this leads to the Eikonal equation $|\nabla u(x)| = 1/f(x)$, a kind of Hamilton-Jacobi PDE. We computed the adequate potential shown \cref{fig:CrowdShortedPathPotential} using the Fast Sweeping method \parencite{Zhao2004AFS}. The solution to the associated discrete 2-step MFG is shown \cref{fig:2MargEikonalGame}.
-
-Of course, another way of modeling the exit problem we're considering would be to change the objective \eqref{eq:ControlObjective} to minimizing the stopping time corresponding to the exit, and deduce new MFG equations: this is explored by \textcite{benamou:hal-01295299} who derive a variational formulation for that problem.
 \end{remark}
 
-\begin{figure}[h]
+From now on, the potential from \cref{rem:SmartPotential} is used in the examples.
+
+\begin{figure}[!h]
 	\centering
 	\begin{subfigure}[b]{.4\linewidth}
 		\centering
@@ -132,7 +132,7 @@ Of course, another way of modeling the exit problem we're considering would be t
 
 \subsubsection{Three time steps}
 
-We now go up to three marginals $(\rho_0,\rho_1,\rho_2)$. We assign to the single intermediate marginal $\rho_1$ the same constraints: congestion $\rho_1 \leq \bar{m}$ and the obstacles. The primal problem then reads
+We now go up to three marginals $(\rho_0,\rho_1,\rho_2)$. We assign to the single intermediate marginal $\rho_1$ the same constraints: congestion $\rho_1 \leq \bar{m}$ and the obstacles. The problem becomes:
 \begin{equation}
 \begin{aligned}
 	&\inf_{\gamma,\rho_1,\rho_2}{} \langle \Psi, \rho_2\rangle + \KL(\gamma | \bfR) \\
@@ -152,7 +152,7 @@ The Lagrange multipliers $u_i^*$ at the optimum satisfy the fixed-point conditio
 	\frac{\bar{m}}{\bfR[a_0^*, a_1^*, \,\cdot\,]}, e^{-\Psi}
 	\right)
 \end{align*}
-where $a_i^* = \exp(u_i^*)$ are supported on $\Omega\backslash\mathscr{O}$ and we denote $\bfR[\cdot,\cdot,\cdot]$ tensor contraction by $\bfR$.
+where $a_i^* = \exp(u_i^*)$ have support on $\Omega\backslash\mathscr{O}$ and we denote $\bfR[\cdot,\cdot,\cdot]$ tensor contraction by $\bfR$.
 The marginals are given by
 \[
 \begin{aligned}
@@ -178,7 +178,7 @@ The same bottlenecks in computing the sum-product contractions appear, and have 
 
 \paragraph{Numerical experiment.} An example on the domain $\Omega$ from before is given \cref{fig:3MargTransport}. Qualitatively, the result is not entirely satisfying: it looks like some of the mass ``bleeds" through the boundary. This might be the case due to the time step being too coarse.
 
-\begin{figure}[h]
+\begin{figure}[!h]
 	\centering
 	\includegraphics[width=.8\linewidth]{../project/images/three_marginal_room1.png}
 	\caption{Three time step discrete MFG.}\label{fig:3MargTransport}
@@ -191,8 +191,7 @@ Implementation of the full multimarginal problem is straightforward once given a
 
 
 \paragraph{Initial example.} The setup is the same as in the prequel. The result is given \cref{fig:NMargEx1Soltn}. The grid size was $M = 101^2$, $30$ time steps, viscosity $\sigma = 0.04$. Convergence of the Hilbert metric was obtained in $12.8$ seconds on a 2.6GHz Intel Core i7 processor. For this number of iterations, the relative $L^\infty$ error for the $\rho_0$ constraint is of order $10^{-10}$.
-
-\begin{figure}[h]
+\begin{figure}[!h]
 	\centering
 	\begin{subfigure}[c]{.4\linewidth}
 	\includegraphics[width=\linewidth]{../project/images/multimarg_room1/congestion_plot.pdf}
@@ -244,13 +243,9 @@ Implementation of the full multimarginal problem is straightforward once given a
 \end{figure}
 \end{comment}
 
-
-
 \paragraph{Second room.} The setup is given \cref{fig:Room3}. Computation on a $M=101^2$ grid with $N=30$ time steps and viscosity $\sigma = 0.04$ took $16$ seconds for convergence. The $L^\infty$ constraint relative error was of order $10^{-10}$.
-
-We observe the ``bleeding" problem: some of the mass decides to clip through obstacles and walk through walls. This is obviously not a physically acceptable solution. It seems like the new domain is much more difficult to handle. Using a more appropriate kernel $\bfR$ might be necessary.
-
-\begin{figure}[h]
+The results are not qualitatively satistfying: some of the agents decide to walk through walls, exhibiting non-physical behavior. The model where we consider $\Omega$ to be convex and impose the obstacles as constraints on the marginals $\rho_k$ might not be appropriate, and adapting the Wiener measure instead $\bfR$ could yield better results: see \cref{sec:ExtensionTopologyHeatKernel} where we discuss appropriate modifications.
+\begin{figure}[!h]
 	\centering
 	\begin{subfigure}[c]{.4\linewidth}
 		\includegraphics[width=\linewidth]{../project/images/multimarg_room3/room_setup.pdf}	
@@ -261,7 +256,7 @@ We observe the ``bleeding" problem: some of the mass decides to clip through obs
 	\caption{Domain, setup and potential for the second room.}\label{fig:Room3}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[!h]
 	\centering
 	\begin{subfigure}[c]{.4\linewidth}
 		\includegraphics[width=\linewidth]{../project/images/multimarg_room3/congestion_plot.pdf}\caption{Congestion plot for the second room.}

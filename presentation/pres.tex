@@ -61,7 +61,7 @@
 \newcommand{\calW}{\mathcal{W}}
 \newcommand{\calX}{\mathcal{X}}
 
-\newcommand{\suchthat}{\mathrm{s.t.}}
+\newcommand{\suchthat}{\text{s.t.}}
 
 \renewcommand{\phi}{\varphi}
 \renewcommand{\epsilon}{\varepsilon}
@@ -198,9 +198,11 @@
 		\suchthat\ & \pi^k_\#\gamma = \rho_k
 	\end{align}
 	\end{subequations}
-	where $R^N_\epsilon = R_{t_0,\ldots,t_N} = \prod_{i<N} P_{t_{i+1}-t_i}(x_{i+1}-x_i)$ is $N$-marginal of Wiener measure $R^N$.
-	
-	$P_t(z) = \exp(-|z|^2/(2t))$ is the \textbf{heat kernel} on $\RR^d$.
+	where
+	\[
+		R^N_\epsilon = \prod_{i<N} P_{t_{i+1}-t_i}(x_{i+1}-x_i)
+	\]
+	is the $N$-marginal of the Wiener measure and $P_t(z) = e^{-|z|^2/(2t)}$ is the \textbf{heat kernel} on $\RR^d$.
 	
 \end{frame}
 
@@ -256,7 +258,7 @@
 	
 \end{frame}
 
-\begin{frame}[allowframebreaks]
+\begin{frame}
 	Handling finite domain $\rightarrow$ for instance $\Omega = [0,1]^2$ and cut-off kernel $\bfR$ (implied in article).
 	{\redfont $\rightarrow$ might be insufficient}
 	
@@ -312,7 +314,7 @@
 	
 	Handling obstacles $\rightarrow$ to keep $\Omega$ convex enforce constraint $\rho = 0$ on set of obstacles $\mathscr{O}$
 	
-	Target set: use potential function $\Psi(x)$ and penalize $\langle \Psi, \mu\rangle$.
+	Target set: penalize distance $\Psi$ to target with $\langle \Psi, \mu\rangle$.
 	
 	\textbf{Penalty:}
 	\begin{align*}
@@ -324,7 +326,8 @@
 	
 	\framebreak
 	
-	Design $\Psi$ to be shortest-time distance to target (solve over $\Omega$ using Eikonal equation $|\nabla u| = 1/f$).
+	Design $\Psi$ to be shortest-time distance to target\\
+	$\rightarrow$ solution of Eikonal equation $|\nabla u(x)| = 1/f(x)$.
 	
 	\begin{figure}
 		\centering
@@ -346,8 +349,12 @@
 \end{frame}
 
 \begin{frame}
-	Convergence speed of the Hilbert metric is linear:
-	\includegraphics[height=\textheight]{../project/images/multimarg_room1/hilbert_convergence.png}
+	\begin{figure}
+		\centering
+		\includegraphics[height=\textheight]{../project/images/multimarg_room1/hilbert_convergence.png}
+		\caption{Linear convergence speed of the Hilbert metric.}
+	\end{figure}
+	
 \end{frame}
 
 \begin{frame}
@@ -374,7 +381,8 @@
 	\end{figure}
 \end{frame}
 
-\begin{frame}{Conclusion on results}
+
+\begin{frame}{Analysis of results}
 	
 	Computational time is \textit{\greenfont very good}: Hilbert metric converges in $K = \calO(|{\log(\eta)}|)$ iterations and CPU time low.
 	
@@ -383,8 +391,10 @@
 	
 \end{frame}
 
+\section{Conclusion and further work}
 
-\begin{frame}{Conclusion -- possible extension}
+
+\begin{frame}{Possible extension}
 	
 	
 	\textbf{Suggestion:} change heat kernel $\bfP$ to something appropriate for non-convex $\Omega$ or Riemannian manifolds based on geodesic distance. See \textcite{peyr2015entropic}.
@@ -392,24 +402,29 @@
 	Geodesic kernel $\boldsymbol{\xi}$ on $\calM$ operates as
 	\[
 		\boldsymbol{\xi}x =
-		\left(I - \frac{t}{L}\hat{\Delta}_\calM \right)^{-L}x
+		\left(I - \frac{s}{L}\hat{\Delta}_\calM \right)^{-L}x
 	\]
-	where $\hat{\Delta}_\calM$ discrete Laplacian on $\calM$. Typically \textbf{not} separable $\rightarrow$ expect slower computation\ldots~(leverage sparse matrices)
+	where $\hat{\Delta}_\calM$ discrete Laplacian on $\calM$, $s>0$ integration time and $L$ number of step.\\
+	Typically \textbf{not} separable $\rightarrow$ {\redfont expect slower computation}\ldots
 	
+	\textbf{Tests} with parameters $L=10$ and $s=0.01$
 	
 \end{frame}
 
+
 \begin{frame}
 	\begin{figure}
-		\includegraphics[width=.85\linewidth]{../project/images/geodesic_room1/transport.pdf}
-		\caption{Application to the first room. Threshold $\eta = 10^{-3}$. CPU time: $23$ seconds. Relative $L^\infty$ constraint err $\sim 2.10^{-4}$.}
+		\includegraphics[width=.84\linewidth]{../project/images/geodesic_room3/transport.pdf}
+		\caption{Application to the more complex room 2. Threshold $\eta = 10^{-3}$. CPU time: $30$ seconds. Relative $L^\infty$ constraint err $\sim 10^{-4}$. {\greenfont\bfseries Much better.}}
 	\end{figure}
 \end{frame}
 
 \begin{frame}
 	\begin{figure}
-		\includegraphics[width=.85\linewidth]{../project/images/geodesic_room3/transport.pdf}
-		\caption{Application to room 3. Threshold $\eta = 10^{-3}$. CPU time: $30$ seconds. Relative $L^\infty$ constraint err $\sim 10^{-4}$. {\greenfont\bfseries Much better.}}
+		\centering
+		\includegraphics[width=.75\linewidth]{../project/images/geodesic_room3/congestion_plot.pdf}
+		\caption{Congestion plot for room 2 w/ geodesic kernel.\\
+		$\rightarrow$ Max agent density oscillates (intuitive property!)}
 	\end{figure}
 \end{frame}
 	
@@ -419,11 +434,12 @@
 	Theoretical justification for geodesic heat kernel? Does it replace Euclidean Wiener measure on $C([0,T], \RR^d)$?
 	\begin{itemize}
 		\item[$\rightarrow$] do results of \textcite{benamou2018entropy} extend?
-		\item[$\rightarrow$] need to extend theoretical framework to Riemannian manifolds
+		\item[$\rightarrow$] \textbf{\bluefont extend theoretical framework to manifolds}
+		\item[$\rightarrow$] fine-tune parameters $L$ and $s$?
 	\end{itemize}
+	\pause
 	
-	
-	Other kinds of problems not covered: non-quadratic Hamiltonians, optimal time problems\ldots~$\rightarrow$ require Lagrangian formulations
+	\textbf{Other kinds of problems} not covered: non-quadratic Hamiltonians, optimal time problems\ldots~$\rightarrow$ require Lagrangian formulations
 	
 \end{frame}
 
